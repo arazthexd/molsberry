@@ -1,0 +1,8 @@
+job: energy
+geometry: tmp.pdb
+interface: mopac
+method: pm6
+charge: +1
+mopac_exe: /home/arazthexd/mopac/mopac-22.1.1-linux/bin/mopac
+mopac_corrections: d3h4x
+# solvent_model: cosmo2
