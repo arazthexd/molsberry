@@ -2,6 +2,8 @@ components/2_entropy/features/
 components/2_entropy/__pycache__/
 components/2_entropy/utils/__pycache__/
 ezdd/utils/__pycache__/
+ezdd/utils/protein/__pycache__/
+ezdd/utils/molecule/__pycache__/
 data/
 models/
 out/
