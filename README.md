@@ -1,7 +1,7 @@
 # Introduction
 ...
 
-# Installation
+# Installation & Setup
 1) Create a new conda/mamba environment using the `environment.yml` file.
 ```terminal
 mamba env create -f environment.yml
@@ -16,7 +16,7 @@ pip install .
 ```
 
 # Usage
-
+...
 
 # Reference
 If you use the code in this repo, please consider citing the below.
