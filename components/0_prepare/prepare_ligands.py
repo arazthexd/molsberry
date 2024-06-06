@@ -7,7 +7,14 @@ import pandas as pd
 
 import rdkit
 from rdkit import Chem
-from rdkit.Chem import rdDistGeom, rdMolDescriptors, PandasTools, rdForceFieldHelpers
+from rdkit.Chem import (
+    rdDistGeom, 
+    rdMolDescriptors, 
+    PandasTools, 
+    rdForceFieldHelpers,
+)
+from rdkit.Chem.EnumerateStereoisomers import EnumerateStereoisomers
+from rdkit.Chem.MolStandardize import rdMolStandardize
 
 ROTOR_QUERY = Chem.MolFromSmarts("[!$(*#*)&!D1]-!@[!$(*#*)&!D1]")
 
@@ -33,11 +40,34 @@ def smi2mols(input_file):
     
     return mols
 
-def sdf2mols():
-    pass
+def sdf2mols(input_file):
+    suppl = Chem.SDMolSupplier(input_file)
+    mols = []
+    i = 0
+    for mol in suppl:
+        if rdMolDescriptors.CalcExactMolWt(mol) > 600:
+            continue
+        
+        if mol.GetNumConformers() > 0:
+            if mol.GetConformer().Is3D():
+                Chem.AssignAtomChiralTagsFromStructure(mol)
 
-def clean_mols():
-    pass
+        if not mol.GetProp("_Name"):
+            name = "unnamed" + str(i)
+            i += 1
+            mol.SetProp("_Name", name)
+
+        mols.append(mol)
+    
+    return mols
+    
+def enumerate_mol(mol): # TODO: ...
+
+    te = rdMolStandardize.TautomerEnumerator()
+    tautomers = list(te.Enumerate(mol))
+
+    stereoisos = [list(EnumerateStereoisomers(t) for t in tautomers)]
+
 
 if __name__ == "__main__":
     
@@ -46,38 +76,36 @@ if __name__ == "__main__":
     )
     parser.add_argument("filename", help="path to input file (.smi or .sdf)")
     parser.add_argument("outfile", help="path to output file (.sdf)")
-    parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("--work_dir", help="where temporary files are stored", default="tmp")
     parser.add_argument("--gypsum_dl_dir", help="if not specified, a simple preprocessing will be used", default="none")
     parser.add_argument("--num_proc", help="number of processors to use", default=1)
     
     args = parser.parse_args()
-    v = args.verbose
 
     assert args.filename.endswith(".sdf") or args.filename.endswith(".smi")
     assert args.outfile.endswith(".sdf")
-
-    if v: print("RDKit Version Using:", rdkit.__version__)
     
     if not os.path.exists(args.work_dir):
-        if v: print("Creating work directory...")
         os.mkdir(args.work_dir)
 
-    # if args.filename.endswith(".smi"):
-    #     mols = smi2mols(args.filename)
-    # else:
-    #     raise NotImplementedError
-    # primary_ligs_path = f"{os.path.join(args.work_dir, 'primary_ligands.sdf')}"
-    # writer = Chem.SDWriter(primary_ligs_path)
-    # [writer.write(mol) for mol in mols]
+    if args.filename.endswith(".smi"):
+        mols = smi2mols(args.filename)
+    else:
+        mols = sdf2mols(args.filename)
+
+    primary_ligs_path = os.path.join(args.work_dir, "primary_ligands.smi")
+    with open(primary_ligs_path, "w") as f:
+        for mol in mols:
+            f.write("\t".join([Chem.MolToSmiles(mol), mol.GetProp("_Name")]))
+            f.write("\n")
 
     gypsum_ligs_path = f"{os.path.join(args.work_dir, 'gypsum_ligands.sdf')}"
     if not args.gypsum_dl_dir == "none":
         sys.path.append(args.gypsum_dl_dir)
         gypsum_path = os.path.join(args.gypsum_dl_dir, 'run_gypsum_dl.py')
-        cmd_line = f"python {gypsum_path} --source {args.filename} \
+        cmd_line = f"python {gypsum_path} --source {primary_ligs_path} \
             --use_durrant_lab_filters --job_manager multiprocessing --num_processors {args.num_proc} \
-                --min_ph 5 --max_ph 9 --skip_optimize_geometry"
+                --min_ph 4 --max_ph 10 --skip_optimize_geometry"
         subprocess.run(cmd_line.split())
         os.rename("gypsum_dl_success.sdf", gypsum_ligs_path)
         if os.path.exists("gypsum_dl_failed.smi"):
@@ -85,11 +113,10 @@ if __name__ == "__main__":
     else:
         raise NotImplementedError
 
-    suppl = Chem.SDMolSupplier(gypsum_ligs_path, removeHs=True)
+    suppl = Chem.SDMolSupplier(gypsum_ligs_path, removeHs=False)
     writer = Chem.SDWriter(args.outfile)
     for i, mol in enumerate(suppl):
         if i == 0: continue
-        print(Chem.MolToSmiles(mol))
-        mol = Chem.AddHs(mol)
         rdForceFieldHelpers.MMFFOptimizeMolecule(mol)
         writer.write(mol)
+    writer.close()

@@ -28,7 +28,15 @@ pip install .
 
 
 # Usage
+Here is an example case for the sake of reproducibility (should be updated for sure)
+1) Preparation of Ligands...
+```terminal
+python components/0_prepare/prepare_ligands.py data/ligands/tmp/test_ligands.smi output/prepared_ligands.sdf --gypsum_dl_dir ~/tools/gypsum_dl/ --num_proc 8
+```
+2) Preparation of Protein...
+```terminal
 ...
+```
 
 # Reference
 If you use the code in this repo, please consider citing the below.
