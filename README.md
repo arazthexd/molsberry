@@ -29,13 +29,15 @@ pip install .
 
 # Usage
 Here is an example case for the sake of reproducibility (should be updated for sure)
+This starts when in the main folder of this repo.
 1) Preparation of Ligands...
 ```terminal
 python components/0_prepare/prepare_ligands.py data/ligands/tmp/test_ligands.smi output/prepared_ligands.sdf --gypsum_dl_dir ~/tools/gypsum_dl/ --num_proc 8
 ```
 2) Preparation of Protein...
 ```terminal
-...
+export PYTHONPATH=.
+python components/0_prepare/prepare_protein.py data/targets/kguD.pdb output/prepared_protein.pdb --chains all --work_dir tmp
 ```
 
 # Reference
