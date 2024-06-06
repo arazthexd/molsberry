@@ -19,8 +19,8 @@ pip install .
 
 
 # Reference
-If you use the code in this repo, please consider citing the below paper:
-SQMVScreen:
+If you use the code in this repo, please consider citing the below.
+- SQMVScreen (This Repo):
 ```
 ...
 ```
