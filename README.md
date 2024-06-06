@@ -12,13 +12,19 @@ cd sqm-vscreen
 mamba env create -f environment.yml
 mamba activate sqmvscreen
 ```
-3) Next you need to install [QupKake](https://github.com/Shualdon/QupKake) for pKa predictions used in our code.
+3) You will also need a GNINA binary. You can get it from [here](https://github.com/gnina/gnina/releases)
+```terminal
+wget https://github.com/gnina/gnina/releases/download/v1.1/gnina -P .. # Or any place you would like to store the binary
+```
+Please note that the above link may not be the latest release of gnina in the future. Always check from their repo for the latest release.
+4) Next you need to install [QupKake](https://github.com/Shualdon/QupKake) for pKa predictions used in our code.
 ```terminal
 cd .. # or any other folder you want to put QupKake in
 git clone https://github.com/Shualdon/QupKake
 cd QupKake
 pip install .
 ```
+
 
 # Usage
 ...
