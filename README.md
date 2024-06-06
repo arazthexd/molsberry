@@ -24,7 +24,7 @@ If you use the code in this repo, please consider citing the below.
 ```
 ...
 ```
-QupKake:
+- QupKake:
 ```
 @article{qupkake, 
     title={QupKake: Integrating Machine Learning and Quantum Chemistry for micro-pKa Predictions}, 
