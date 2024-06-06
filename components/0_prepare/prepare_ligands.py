@@ -7,7 +7,7 @@ import pandas as pd
 
 import rdkit
 from rdkit import Chem
-from rdkit.Chem import rdDistGeom, rdMolDescriptors, PandasTools
+from rdkit.Chem import rdDistGeom, rdMolDescriptors, PandasTools, rdForceFieldHelpers
 
 ROTOR_QUERY = Chem.MolFromSmarts("[!$(*#*)&!D1]-!@[!$(*#*)&!D1]")
 
@@ -63,30 +63,33 @@ if __name__ == "__main__":
         if v: print("Creating work directory...")
         os.mkdir(args.work_dir)
 
-    if args.filename.endswith(".smi"):
-        mols = smi2mols(args.filename)
-    else:
-        raise NotImplementedError
-    primary_ligs_path = f"{os.path.join(args.work_dir, 'primary_ligands.sdf')}"
-    writer = Chem.SDWriter(primary_ligs_path)
-    [writer.write(mol) for mol in mols]
+    # if args.filename.endswith(".smi"):
+    #     mols = smi2mols(args.filename)
+    # else:
+    #     raise NotImplementedError
+    # primary_ligs_path = f"{os.path.join(args.work_dir, 'primary_ligands.sdf')}"
+    # writer = Chem.SDWriter(primary_ligs_path)
+    # [writer.write(mol) for mol in mols]
 
+    gypsum_ligs_path = f"{os.path.join(args.work_dir, 'gypsum_ligands.sdf')}"
     if not args.gypsum_dl_dir == "none":
         sys.path.append(args.gypsum_dl_dir)
         gypsum_path = os.path.join(args.gypsum_dl_dir, 'run_gypsum_dl.py')
-        cmd_line = f"python {gypsum_path} --source {primary_ligs_path} \
+        cmd_line = f"python {gypsum_path} --source {args.filename} \
             --use_durrant_lab_filters --job_manager multiprocessing --num_processors {args.num_proc} \
-                --min_ph 4 --max_ph 10 --skip_optimize_geometry"
+                --min_ph 5 --max_ph 9 --skip_optimize_geometry"
         subprocess.run(cmd_line.split())
-        os.rename("gypsum_dl_success.sdf", args.outfile)
+        os.rename("gypsum_dl_success.sdf", gypsum_ligs_path)
+        if os.path.exists("gypsum_dl_failed.smi"):
+            os.rename("gypsum_dl_failed.smi", os.path.join(args.work_dir, "gypsum_fails.smi"))
     else:
         raise NotImplementedError
-    
-    df: pd.DataFrame = PandasTools.LoadSDF(args.outfile)
-    
-    
-    with open(args.outfile, "r") as f:
-        p = f.read()
-    p = p.split("$$$$\n")
-    with open(args.outfile, "w") as f:
-        f.write("$$$$\n".join(p[1:]))
+
+    suppl = Chem.SDMolSupplier(gypsum_ligs_path, removeHs=True)
+    writer = Chem.SDWriter(args.outfile)
+    for i, mol in enumerate(suppl):
+        if i == 0: continue
+        print(Chem.MolToSmiles(mol))
+        mol = Chem.AddHs(mol)
+        rdForceFieldHelpers.MMFFOptimizeMolecule(mol)
+        writer.write(mol)

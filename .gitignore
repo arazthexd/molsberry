@@ -6,5 +6,6 @@ ezdd/utils/protein/__pycache__/
 ezdd/utils/molecule/__pycache__/
 data/
 models/
-out/
+output/
 tmp/
+manual/
