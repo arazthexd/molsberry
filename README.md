@@ -39,6 +39,11 @@ python components/0_prepare/prepare_ligands.py data/ligands/tmp/test_ligands.smi
 export PYTHONPATH=.
 python components/0_prepare/prepare_protein.py data/targets/kguD.pdb output/prepared_protein.pdb --chains all --work_dir tmp
 ```
+3) Docking...
+```terminal
+python components/1_vscreen/dock_ligands.py -l output/prepared_ligands.sdf -p output/prepared_protein.pdb -o output/docked_ligands.sdf --gnina_path ~/tools/gnina/gnina --center 1.16,-0.56,-2.91 --bsize 20,20,20
+```
+4) Candidate Selection
 
 # Reference
 If you use the code in this repo, please consider citing the below.

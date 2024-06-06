@@ -12,10 +12,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="Docking Performer",
     )
-    parser.add_argument("-l", "--ligands", help="path to ligands file (.sdf)")
-    parser.add_argument("-p", "--protein", help="path to protein file (.pdb)")
-    parser.add_argument("-o", "--output", help="path to output file (.sdf)")
-    parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument("-l", "--ligands", help="path to ligands file (.sdf)", required=True)
+    parser.add_argument("-p", "--protein", help="path to protein file (.pdb)", required=True)
+    parser.add_argument("-o", "--output", help="path to output file (.sdf)", required=True)
     parser.add_argument("--work_dir", help="where temporary files are stored", default="tmp")
     parser.add_argument("--gnina_path", help="path to gnina, in the future might add others")
     parser.add_argument("--center")
