@@ -2,12 +2,17 @@
 ...
 
 # Installation & Setup
-1) Create a new conda/mamba environment using the `environment.yml` file.
+1) Clone this repository
+```terminal
+git clone https://github.com/arazthexd/sqm-vscreen
+cd sqm-vscreen
+```
+2) Create a new conda/mamba environment using the `environment.yml` file.
 ```terminal
 mamba env create -f environment.yml
 mamba activate sqmvscreen
 ```
-2) Next you need to install [QupKake](https://github.com/Shualdon/QupKake) for pKa predictions used in our code.
+3) Next you need to install [QupKake](https://github.com/Shualdon/QupKake) for pKa predictions used in our code.
 ```terminal
 cd .. # or any other folder you want to put QupKake in
 git clone https://github.com/Shualdon/QupKake
