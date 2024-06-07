@@ -26,9 +26,11 @@ if __name__ == "__main__":
     center = args.center.split(",")
     bsize = args.bsize.split(",")
 
+    log_path = os.path.join(args.work_dir, "gnina.log")
+
     cmd_line = f"{args.gnina_path} -r {args.protein} -l {args.ligands} --center_x {center[0]} \
         --center_y {center[1]} --center_z {center[2]} --size_x {bsize[0]} --size_y {bsize[1]} \
-            --size_z {bsize[2]} -o {args.output} --log gnina.log"
+            --size_z {bsize[2]} -o {args.output} --log {log_path}"
     if args.flexres:
         cmd_line += f" --flexres {args.flexres}"
     print(cmd_line)
