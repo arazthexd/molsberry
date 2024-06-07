@@ -29,7 +29,7 @@ pip install .
 ```terminal
 cd .. # or any other folder you want to put Gypsum_DL in
 git clone https://github.com/durrantlab/gypsum_dl
-
+```
 
 
 # Usage
