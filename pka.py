@@ -12,13 +12,8 @@ p_list = []
 protonation_list = []
 checked_smiles = []
 
-def qupkake(smiles):
-    mol = Chem.MolFromSmiles(smiles)
-    AllChem.EmbedMolecule(mol)
-    w = Chem.SDWriter('output.sdf')
-    w.write(mol)
-    w.close()
-    subprocess.run(['qupkake', 'file', "output.sdf" ])
+def qupkake(smiles, output = "qupkake_output.sdf"):
+    subprocess.run(['qupkake', 'smiles', smiles, output ])
     checked_smiles.append(smiles)
 
 def dict_pka(sdf_file = "./data/output/qupkake_output.sdf", energy_first =0.0):
@@ -97,10 +92,9 @@ def iterate(my_dict :dict,checked_smiles = checked_smiles):
     for smiles in my_dict:
         energy_first = my_dict[smiles][0][2]
         if smiles not in checked_smiles:
-            qupkake(smiles)
-            second_dict = dict_pka(sdf_file= "qupkake_output.sdf", energy_first = energy_first)
+            qupkake(smiles, output="so.sdf")
+            second_dict = dict_pka(sdf_file= "./data/output/so.sdf", energy_first = energy_first)
             so_dict = dict_update(so_dict, second_dict)
-            checked_smiles.append(smiles)
     return so_dict
 
 def probability_finder(smiles):
