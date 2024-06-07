@@ -25,6 +25,11 @@ git clone https://github.com/Shualdon/QupKake
 cd QupKake
 pip install .
 ```
+5) For preparation of the initial ligands, we use [Gypsum_DL](https://github.com/durrantlab/gypsum_dl). You should clone the repository and pass the directory of it when needed.
+```terminal
+cd .. # or any other folder you want to put Gypsum_DL in
+git clone https://github.com/durrantlab/gypsum_dl
+
 
 
 # Usage
