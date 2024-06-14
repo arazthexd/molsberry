@@ -3,7 +3,7 @@ from pandarallel import pandarallel
 import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import PandasTools
-from utils import (
+from .utils import (
     CalcRingFlexibility, 
     CalcHBondFoldability, 
     CalcPiPiStackFoldability, 

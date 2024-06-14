@@ -30,9 +30,11 @@ pip install .
 cd .. # or any other folder you want to put Gypsum_DL in
 git clone https://github.com/durrantlab/gypsum_dl
 ```
+6) MOPAC and Cuby4 are also needed... (later :D)
 
 
 # Usage
+## Main Pipeline
 Here is an example case for the sake of reproducibility (should be updated for sure)
 This starts when in the main folder of this repo.
 1) Preparation of Ligands...
@@ -52,6 +54,17 @@ python components/1_vscreen/dock_ligands.py -l output/prepared_ligands.sdf -p ou
 ```terminal
 python components/1_vscreen/select_candidates.py output/docked_ligands.sdf output/selected_ligands.sdf
 ```
+5) Predicting Ligand Entropies
+```terminal
+python components/2_entropy/inference.py --input output/selected_ligands.sdf --model models/mlp8_tanh.pkl --output output/entropies.csv
+```
+Note that for this you will need to either use the model provided or train another model (explained later)
+6) Optimize Geometries
+```terminal
+
+
+## Training Entropy Prediction Model
+1) 
 
 # Reference
 If you use the code in this repo, please consider citing the below.

@@ -1,8 +1,0 @@
-job: energy
-geometry: optimized.xyz
-interface: mopac
-method: pm6
-charge: -2
-mopac_exe: /home/arazthexd/tools/mopac/bin/mopac
-mopac_corrections: d3h4x
-solvent_model: cosmo2

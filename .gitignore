@@ -9,3 +9,5 @@ models/
 output/
 tmp/
 manual/
+.model.pt
+_deprecated

@@ -8,6 +8,8 @@ import pandas as pd
 
 from rdkit import Chem
 from biopandas.pdb import PandasPdb
+from pdbfixer import PDBFixer
+from openmm.app import PDBFile
 
 from .protio import read_prot_file
 
@@ -342,6 +344,13 @@ def isolate_pocket(protein_input, pocket_location: PocketLocation, output_path =
 
     if output_path:
         ppdb.to_pdb(output_path, records=["ATOM"])
+        fixer = PDBFixer(output_path)
+        fixer.addMissingHydrogens(7.4)
+        with open(output_path, "w") as f:
+            PDBFile.writeFile(fixer.topology, fixer.positions, f)
+        ppdb = PandasPdb().read_pdb(output_path)
+        ppdb.df["HETATM"]["record_name"] = "ATOM"
+        ppdb.to_pdb(output_path)
     
     return ppdb
 
