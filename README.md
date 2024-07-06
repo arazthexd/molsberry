@@ -1,5 +1,5 @@
 # Introduction
-...
+MOdular Structure Based drug discovERY
 
 # Installation & Setup
 1) Clone this repository
