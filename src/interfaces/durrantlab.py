@@ -20,7 +20,7 @@ class DimorphiteProtoEnumerator(LigandEnumerator):
     name = "DimorphiteDL Protomer Enumerator"
     def __init__(self, debug: bool = False, align_mols: bool = True, min_ph: float = 7.2,
                  max_ph: float = 7.6, **kwargs):
-        super().__init__(debug) # debug should go here
+        super().__init__(debug)
         self.align_mols: bool = align_mols
         self.min_ph = min_ph
         self.max_ph = max_ph

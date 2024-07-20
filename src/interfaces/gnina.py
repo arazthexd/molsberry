@@ -117,7 +117,8 @@ class GninaDocker(ComplexEnumerator):
     name = "Gnina Docking"
     def __init__(self, interface: GninaInterface, pocket_loc: PocketLocation, batch_size: int = None,
                  out_path: str = "auto", in_path_ligand: str = "auto", flexible_residues: str = None, 
-                 out_path_flexible: str = "auto") -> None:
+                 out_path_flexible: str = "auto", debug: bool = False) -> None:
+        super().__init__(debug)
         self.interface = interface
         self.batch_size = batch_size # TODO: Implement batch sizes
         self.pocket_loc = pocket_loc
@@ -163,8 +164,8 @@ class GninaDocker(ComplexEnumerator):
 class GninaResultsSelector(LigandSelector):
     name = "Gnina Results Selection"
     def __init__(self, sort_by: str = "CNN_VS", max_vina: float = -4.0, min_posescore: float = 0.4,
-                 select_ratio: float = 0.1, max_per_lig: int = 2, n_select: int = 1):
-        super().__init__()
+                 select_ratio: float = 0.1, max_per_lig: int = 2, n_select: int = 1, debug: bool = False, identifier: str = "_Name"):
+        super().__init__(identifier=identifier, debug=debug)
         self.sort_by = sort_by
         self.max_vina = max_vina
         self.min_posescore = min_posescore

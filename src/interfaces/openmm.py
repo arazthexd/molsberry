@@ -183,10 +183,26 @@ class OpenMMGeneral:
         penergy = state.getPotentialEnergy().value_in_unit(unit.kilocalorie_per_mole)
         return penergy
 
+class OpenMMLigandOptimizer(OpenMMGeneral, LigandConverter):
+    name = "OpenMM Ligand Optimization"
+    def __init__(self, forcefields: List[str] | ForceField, work_dir: str, jobname: str = "job",
+                 debug: bool = False):
+        super().__init__(forcefields, work_dir, debug)
+        LigandConverter.__init__(self, debug)
+        self.jobname = jobname
+    
+    def convert(self, ligand: Chem.Mol) -> Chem.Mol:
+        self.forcefield = self.forcefield_constructor()
+        components = [OpenMMComponent.create_component(ligand, self.forcefield, name=f"{self.jobname}_lig")]
+        merged_pdb, (opt_ligand,) = self._optimize(components)
+        return opt_ligand
+
 class OpenMMComplexOptimizer(OpenMMGeneral, ComplexConverter):
     name = "OpenMM Complex Optimization"
-    def __init__(self, forcefields: List[str] | ForceField, work_dir: str = ".", jobname: str = "job"):
-        super().__init__(forcefields, work_dir)
+    def __init__(self, forcefields: List[str] | ForceField, work_dir: str = ".", jobname: str = "job",
+                 debug: bool = False):
+        super().__init__(forcefields, work_dir, debug)
+        ComplexConverter.__init__(self, debug)
         self.jobname = jobname
     
     def convert(self, ligand: Chem.Mol, target: str) -> Tuple[Chem.Mol, str]:
@@ -208,6 +224,7 @@ class OpenMMComplexInteractScorer(OpenMMGeneral, ComplexScorer):
     def __init__(self, forcefields: List[str] | ForceField, work_dir: str = ".", 
                  optimize_before: bool = False, debug: bool = False):
         super().__init__(forcefields, work_dir, debug)
+        ComplexScorer.__init__(self, debug)
         self.optimize_before = optimize_before
     
     def score(self, ligand: Chem.Mol, target: str, return_used_components: bool = False) -> float:
@@ -246,7 +263,9 @@ class OpenMMUtils:
 class PDBFixerProteinPrepper(TargetConverter):
     name = "PDBFixer Protein Preparation"
     def __init__(self, ph: float = 7.4, chains: str = "all", keep_water: bool = False,
-                 add_missing_residues: bool = False, out_dir: str = ".", save_prefix: str = "prepared"):
+                 add_missing_residues: bool = False, out_dir: str = ".", save_prefix: str = "prepared",
+                 debug: bool = False):
+        super().__init__(debug)
         self.chains = chains
         self.keep_water = keep_water
         self.ph = ph
@@ -272,6 +291,6 @@ class PDBFixerProteinPrepper(TargetConverter):
         # fixer.replaceNonstandardResidues()
         fixer.addMissingHydrogens(self.ph)  # TODO: Any need to pH value?
 
-        save_path = os.path.join(self.out_dir, f"{self.save_prefix}_protein.pdb")
+        save_path = os.path.join(self.out_dir, get_unique_full_name(f"{self.save_prefix}_protein", ".pdb", n=5))
         PDBFile.writeFile(fixer.topology, fixer.positions, open(save_path, 'w')) 
         return save_path

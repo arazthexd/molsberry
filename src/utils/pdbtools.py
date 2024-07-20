@@ -1,6 +1,3 @@
-
-
-
 def dissociate_complex(complex_path, lig_name, lig_write, poc_write):
     compl = open(complex_path, "r")
     lig = open(lig_write, "w")

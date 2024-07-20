@@ -115,7 +115,7 @@ class Cuby4JobConfig(Cuby4Config, ABC):
                           work_dir: str = "tmp", **kwargs):
         if isinstance(some_input, Chem.Mol):
             work_dir = str(pathlib.Path(work_dir).absolute())
-            tmp_name = "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
+            tmp_name = "smallmol_" + "".join(random.choices(string.ascii_uppercase + string.digits, k=10))
             tmp_save_path = os.path.join(work_dir, f"{tmp_name}.sdf")
             write_ligands([some_input], save_path=tmp_save_path)
             self.geometry = tmp_save_path
@@ -237,13 +237,14 @@ class Cuby4MOPACMolSpecConfig(Cuby4Config):
         self.setpi = setpi
         self.setcharge = setcharge
         self.charge = str(charge)
+        self.keywords = "\nmopac_keywords: "
     
     def get_mopac_mol_str(self):
         return CUBY4_MOPAC_MOLSPEC_ADDON.format(
             charge=self.charge,
             mopac_setcharge=self.setcharge,
             mopac_setpi=self.setpi
-        )
+        ) + self.keywords
     
     @classmethod
     def from_rdmol(cls, mol: Chem.Mol):
@@ -251,10 +252,13 @@ class Cuby4MOPACMolSpecConfig(Cuby4Config):
         setcharge = "\n  ".join(setcharge_list)
         setpi = ",".join(cls.get_mol_setpi(mol))
         charge = Chem.GetFormalCharge(mol)
-        return cls(setpi, setcharge, charge)
+        out = cls(setpi, setcharge, charge)
+        out.keywords += f"GEO-OK CVB({';'.join(cls.get_mol_cvb(mol))})"
+        # print(out.keywords)
+        return out
 
     @classmethod
-    def from_pdb(cls, pdb_path: str, unique_molecules: List[Chem.Mol] = None):
+    def from_pdb(cls, pdb_path: str, unique_molecules: List[Chem.Mol] = list()):
         setcharge_list = cls.get_pdb_setcharge(pdb_path, unique_molecules=unique_molecules)
         setcharge = "\n  ".join(setcharge_list)
         charge = sum([int(sline.split(": ")[1]) for sline in setcharge_list])
@@ -262,9 +266,32 @@ class Cuby4MOPACMolSpecConfig(Cuby4Config):
 
     @staticmethod
     def get_mol_setcharge(mol: Chem.Mol) -> list:
-        setcharge = [f"{a.GetIdx()+1}: {str(a.GetFormalCharge())}" 
+        def helper(x):
+            if x == 0: return str(x)
+            if x > 0:
+                return str("'+'") * x
+            if x < 0:
+                return str("'-'") * (-x)
+        setcharge = [f"{a.GetIdx()+1}: {helper(a.GetFormalCharge())}" 
                     for a in mol.GetAtoms()]
         return setcharge
+    
+    @staticmethod
+    def get_mol_cvb(mol: Chem.Mol) -> list:
+        cvb_list = []
+        for atom1 in range(mol.GetNumAtoms()):
+            for atom2 in range(atom1+1,mol.GetNumAtoms()):
+                # if mol.GetBondBetweenAtoms(atom1, atom2):
+                #     cvb_list.append(f"{atom1+1}:{atom2+1}")
+                # else:
+                #     cvb_list.append(f"{atom1+1}:-{atom2+1}")
+                if not mol.GetBondBetweenAtoms(atom1, atom2):
+                    if mol.GetAtomWithIdx(atom1).GetSymbol() == "O" and \
+                        mol.GetAtomWithIdx(atom2).GetSymbol() == "O":
+                        cvb_list.append(f"{atom1+1}:-{atom2+1}")
+
+        return cvb_list
+
     
     @staticmethod
     def get_pdb_setcharge(pdb: str, unique_molecules: List[Chem.Mol] = list()) -> list:
@@ -319,12 +346,13 @@ class Cuby4MOPACFullConfig(Cuby4MOPACConfig, Cuby4MOPACMolSpecConfig):
             target = some_input[1]
             comp_path = os.path.join(work_dir, "cuby_complex_tomolspec_tmp.pdb")
             save_pl_complex(ligand, target, comp_path) # TODO: better implementation of job name
-            self.molspec = Cuby4MOPACMolSpecConfig.from_pdb(comp_path, unique_mols.append(ligand))
+            self.molspec = Cuby4MOPACMolSpecConfig.from_pdb(comp_path, unique_mols + [ligand])
         else:
             raise NotImplementedError()
     
 class Cuby4AmberConfig(Cuby4InterfaceConfig):
-    def __init__(self, amber_home: str = "auto", topology_file: str = None, forcefield: ForceField = ForceField()):
+    def __init__(self, amber_home: str = "auto", topology_file: str = None, 
+                 forcefields: List[str] | ForceField = ForceField()):
         super().__init__()
         if amber_home == "auto":
             self.amber_home = str(pathlib.Path(shutil.which("sander")).parent.parent.absolute())
@@ -336,7 +364,12 @@ class Cuby4AmberConfig(Cuby4InterfaceConfig):
         else:
             self.topology_str = ""
         
-        self.forcefield = forcefield
+        if isinstance(forcefields, list):
+            self.forcefield: ForceField = ForceField(*forcefields)
+            self.forcefield_constructor = lambda: ForceField(*forcefields)
+        else:
+            self.forcefield: ForceField = forcefields
+            self.forcefield_constructor = lambda: self.forcefield
     
     def get_amber_config(self):
         return CUBY4_AMBER_MAIN_ADDON.format(
@@ -349,6 +382,7 @@ class Cuby4AmberConfig(Cuby4InterfaceConfig):
     
     def update_config_for(self, some_input: Chem.Mol | str | Tuple[Chem.Mol | str, str], **kwargs):
 
+        self.forcefield = self.forcefield_constructor()
         if isinstance(some_input, Chem.Mol):
             omm_component = OpenMMComponent.create_component_from_rdmol(some_input, self.forcefield)
             self.topology_str = "amber_top_file: " + omm_component.to_amber_prmtop()
@@ -422,105 +456,3 @@ class Cuby4FullConfig(Cuby4Config):
     def update_config_for(self, some_input: Chem.Mol | str, **kwargs):
         raise NotImplementedError()
     
-
-### DEFAULT CONFIGS ###
-CUBY4_DEFAULT_INTERACTION_CONFIG = """
-job: interaction
-geometry: {geometry}
-
-molecule_a:
-  selection: '{select_a}'
-  charge: {charge_a}
-  mopac_setcharge:
-    {setcharge_lines_a}
-  mopac_setpi: [{setpi_a}]
-molecule_b:
-  selection: '{select_b}'
-  charge: {charge_b}
-  mopac_setcharge:
-    {setcharge_lines_b}
-  mopac_setpi: [{setpi_b}]
-
-interface: mopac
-method: pm6
-mopac_exe: {mopac_exe}
-mopac_mozyme: yes
-mopac_corrections: d3h4x
-mopac_setcharge:
-  {setcharge_lines_all}
-mopac_setpi: [{setpi_all}]
-solvent_model: {solv_model}
-
-cuby_threads: {n_threads}
-"""
-
-CUBY4_DEFAULT_ENERGY_CONFIG = """
-job: energy
-geometry: {geometry}
-
-interface: mopac
-method: pm6
-mopac_exe: {mopac_exe}
-mopac_mozyme: yes
-mopac_corrections: d3h4x
-mopac_setcharge:
-  {setcharge_lines}
-mopac_setpi: [{setpi}]
-solvent_model: {solv_model}
-charge: {charge}
-
-cuby_threads: {n_threads}
-"""
-
-CUBY4_DEFAULT_OPTIMIZE_CONFIG = """
-job: optimize
-geometry: {geometry}
-
-interface: mopac
-method: pm6
-mopac_exe: {mopac_exe}
-mopac_mozyme: yes
-mopac_corrections: d3h4x
-mopac_setcharge:
-  {setcharge_lines}
-mopac_setpi: [{setpi}]
-charge: {charge}
-
-restart_file: {restart_path}
-cuby_threads: {n_threads}
-"""
-
-CUBY4_DEFAULT_QMMM_CONFIG = """
-job: optimize
-geometry: {geometry}
-maxcycles: {max_cycles}
-
-interface: qmmm
-qmmm_core: {qmmm_core}
-qmmm_embedding: mechanical
-gradient_on_point_charges: 'no'
-
-calculation_qm:
-  interface: mopac
-  method: pm6
-  mopac_exe: {mopac_exe}
-  mopac_mozyme: 'yes'
-  mopac_corrections: d3h4x
-  mopac_setcharge:
-    {setcharge_lines_qm}
-  mopac_setpi: [{setpi_qm}]
-  gradient_on_point_charges: 'no'
-  charge: {charge_qm}
-
-calculation_qmregion_mm:
-  amber_top_file: {qmregion_top}
-
-calculation_mm:
-  interface: amber
-  amber_amberhome: {amber_home}
-  amber_top_file: {complex_top}
-
-restart_file: {restart_path}
-cuby_threads: {n_threads}
-"""
-### END OF DEFAULT CONFIGS ###

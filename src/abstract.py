@@ -1,10 +1,17 @@
 from __future__ import annotations
+
+import os, pathlib
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Any, Dict
 from itertools import repeat
+from collections import OrderedDict
 from tqdm import tqdm
 
+from paradag import DAG
+
 from rdkit import Chem
+
+from .utils.iotools import write_ligands
 
 def zip_complex(ligands, targets):
     if len(targets) == 1:
@@ -20,16 +27,29 @@ class Interface(ABC):
         pass
 
 class PipelineBlock(ABC):
-    def __init__(self):
-        pass
+    def __init__(self, debug: bool = False):
+        self.debug = debug
+        self.executed = False
+        self.ligands_out = list()
+        self.targets_out = list()
+        self.extra_info = dict()
+    
+    def reset(self):
+        self.executed = False
+        self.ligands_out = list()
+        self.targets_out = list()
+        self.extra_info = dict()
 
     @abstractmethod
     def run(self, ligands: List[Chem.Mol], targets: List[str], 
             extra_info: dict = dict()) -> Tuple[List[Chem.Mol], List[str]]:
+        if self.debug: print("target len", len(targets))
         assert len(ligands) == len(targets) or len(targets) == 1
         assert all(ligand.HasProp("_Name") for ligand in ligands)
+
         print()
         print(f"[Running Pipe Block: {self.name}]")
+        
         return ligands, targets
     
     @property
@@ -38,30 +58,52 @@ class PipelineBlock(ABC):
         return "pipeblock"
 
 class Pipeline(ABC):
-    def __init__(self):
+    def __init__(self, return_input: bool = False, out_dir: str = "output", 
+                 extra_info: dict = dict()):
+        if not os.path.exists(out_dir):
+            os.mkdir(out_dir)
         self.blocks: List[PipelineBlock] = []
-        self.extra_info: dict = dict()
+        self.extra_info: dict = extra_info
+        self.return_input = return_input
+        self.out_dir = str(pathlib.Path(out_dir).absolute())
 
     def run(self, ligands: List[Chem.Mol], targets: List[str],
-            extra_info: dict = None) -> Tuple[List[Chem.Mol], List[str]]:
+            extra_info: dict = dict(), save_output: bool = True) -> Tuple[List[Chem.Mol], List[str]]:
         
-        if extra_info:
-            self.extra_info = extra_info
-        else:
-            extra_info = self.extra_info
+        # if extra_info:
+        #     self.extra_info = extra_info
+        # else:
+        #     extra_info = self.extra_info
 
         l = 55
         print()
         print(">"*l)
         print(">>" + str.center("STARTED: " + self.name, l-5), ">>")
         print(">"*l)
+        origligs, origtargs = ligands, targets
         for block in self.blocks:
             ligands, targets = block.run(ligands, targets, extra_info)
         print()
         print("<"*l)
         print("<<" + str.center("ENDED: " + self.name, l-5), "<<")
         print("<"*l)
-        return ligands, targets
+
+        self.extra_info = extra_info
+
+        if save_output:
+            prefix = os.path.join(self.out_dir, 
+                                "".join(self.name.split()) + "Output")
+            self.save_mid(ligands, targets, prefix+"Ligs.sdf", prefix+"Targs.txt")
+
+        if not self.return_input:
+            return ligands, targets
+        return origligs, origtargs
+    
+    @staticmethod
+    def save_mid(ligands, targets, ligname, targname):
+        write_ligands(ligands, ligname)
+        with open(targname, "w") as f:
+            f.write("\n".join(targets))
     
     @property
     @abstractmethod
@@ -70,7 +112,7 @@ class Pipeline(ABC):
     
 class LigandEnumerator(PipelineBlock, ABC):
     def __init__(self, debug: bool = False):
-        self.debug = debug
+        super().__init__(debug)
 
     @abstractmethod
     def enumerate(self, ligand: Chem.Mol) -> List[Chem.Mol]:
@@ -89,10 +131,15 @@ class LigandEnumerator(PipelineBlock, ABC):
             newtargs = [target for _ in range(len(newligs))]
             out_ligands.extend(newligs)
             out_targets.extend(newtargs)
-        return out_ligands, out_targets
+        
+        if len(targets) == 1:
+            return out_ligands, targets
+        else:
+            return out_ligands, out_targets
     
 class LigandSelector(PipelineBlock, ABC):
-    def __init__(self, identifier: str = "_Name"):
+    def __init__(self, identifier: str = "_Name", debug: bool = False):
+        super().__init__(debug)
         self.identifier = identifier
 
     @abstractmethod
@@ -130,9 +177,9 @@ class LigandSelector(PipelineBlock, ABC):
         return out_ligands, out_targets
 
 class LigandConverter(PipelineBlock, ABC):
-    def __init__(self):
-        pass
-
+    def __init__(self, debug: bool = False):
+        super().__init__(debug)
+        
     @abstractmethod
     def convert(self, ligand: Chem.Mol) -> Chem.Mol:
         return ligand
@@ -147,13 +194,14 @@ class LigandConverter(PipelineBlock, ABC):
         return out_ligands, targets
 
 class LigandScorer(PipelineBlock, ABC):
-    def __init__(self):
-        pass
+    def __init__(self, score_name: str, debug: bool = False):
+        super().__init__(debug)
+        self._score_name = score_name
 
     @property
     @abstractmethod
     def score_name(self) -> str:
-        return "score"
+        return self._score_name
     
     @abstractmethod
     def score(self, ligand: Chem.Mol) -> float:
@@ -162,13 +210,13 @@ class LigandScorer(PipelineBlock, ABC):
     def run(self, ligands: List[Chem.Mol], targets: List[str], 
             extra_info: dict = dict()) -> Tuple[List[Chem.Mol] | List[str]]:
         ligands, targets = PipelineBlock.run(self, ligands, targets, extra_info)
-        if "score" not in extra_info.keys():
-            extra_info["score"] = dict()
-        extra_info["score"][self.score_name] = list() # TODO: prevent overwrites or at least manage them?
-        for ligand in tqdm(ligands):
+        if self.score_name in extra_info.keys(): # TODO: prevent overwrites or at least manage them?
+            print("Warning: Overwriting a score in extra_info...")
+        extra_info[self.score_name] = []
+        for i, ligand in enumerate(tqdm(ligands)):
             score = self.score(ligand)
             ligand.SetDoubleProp(self.score_name, score)
-            extra_info["score"][self.score_name].append(score)
+            extra_info[self.score_name].append(score)
         return ligands, targets
 
 class TargetEnumerator(PipelineBlock, ABC):
@@ -178,8 +226,8 @@ class TargetSelector(PipelineBlock, ABC):
     pass
   
 class TargetConverter(PipelineBlock, ABC):
-    def __init__(self):
-        pass
+    def __init__(self, debug: bool = False):
+        super().__init__(debug)
 
     @abstractmethod
     def convert(self, target_path: str) -> str:
@@ -197,8 +245,8 @@ class TargetScorer(ABC):
     pass
 
 class ComplexEnumerator(PipelineBlock, ABC):
-    def __init__(self):
-        pass
+    def __init__(self, debug: bool = False):
+        super().__init__(debug)
 
     @abstractmethod
     def enumerate(self, ligand: Chem.Mol, target_path: str) -> Tuple[List[Chem.Mol], List[str]]:
@@ -221,8 +269,8 @@ class ComplexSelector(PipelineBlock, ABC):
     pass
 
 class ComplexConverter(PipelineBlock, ABC):
-    def __init__(self):
-        pass
+    def __init__(self, debug: bool = False):
+        super().__init__(debug)
 
     @abstractmethod
     def convert(self, ligand: Chem.Mol, target_path: str) -> Tuple[Chem.Mol, str]:
@@ -242,13 +290,14 @@ class ComplexConverter(PipelineBlock, ABC):
         return out_ligands, out_targets
 
 class ComplexScorer(PipelineBlock, ABC):
-    def __init__(self):
-        pass
+    def __init__(self, score_name: str, debug: bool = False):
+        super().__init__(debug)
+        self._score_name = score_name
 
     @property
     @abstractmethod
     def score_name(self) -> str:
-        return "score"
+        return self._score_name
     
     @abstractmethod
     def score(self, ligand: Chem.Mol, target: str):
@@ -259,14 +308,14 @@ class ComplexScorer(PipelineBlock, ABC):
         ligands, targets = PipelineBlock.run(self, ligands, targets, extra_info)
         zipped = zip_complex(tqdm(ligands), targets)
 
-        if "score" not in extra_info.keys():
-            extra_info["score"] = dict()
-        extra_info["score"][self.score_name] = list() # TODO: prevent overwrites or at least manage them?
+        if self.score_name in extra_info.keys(): # TODO: prevent overwrites or at least manage them?
+            print("Warning: Overwriting a score in extra_info...")
+        extra_info[self.score_name] = []
 
         for ligand, target in zipped:
             score = self.score(ligand, target)
             ligand.SetDoubleProp(self.score_name, score)
-            extra_info["score"][self.score_name].append(score)
+            extra_info[self.score_name].append(score)
         return ligands, targets
     
 
