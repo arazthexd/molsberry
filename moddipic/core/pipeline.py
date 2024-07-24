@@ -6,6 +6,8 @@ import os
 import pathlib
 import pickle
 
+# TODO: Optional Input Keys? When to use?
+
 class _Connection():
     def __init__(self, parent: Pipeline, 
                  source_block: PipelineBlock, source_key: str,
@@ -29,6 +31,7 @@ class _Connection():
         return self.source_block._output[self.source_key]
 
 class PipelineBlock(ABC):
+    force_run: bool = False
     # TODO: Do we need to add remove_connection to blocks?
     # TODO: Save directory property... vs Pipeline.
     def __init__(self, debug: bool = False, save_output: bool = False) -> None:
@@ -144,6 +147,7 @@ class PipelineBlock(ABC):
         
         # Do not execute if input is the same as last time and it has been
         # executed previously.
+        # TODO: Figure out if repeating executions is because of the second part.
         if self._executed and self._latest_input == block_input:
             self.save()
             return
@@ -154,6 +158,8 @@ class PipelineBlock(ABC):
         print(f"[Running Pipe Block: ({self._name_in_parent}) {self.name}]")
         self.check_input(block_input)
         self._output = self.execute(**block_input)
+        self._latest_input = block_input
+        self._executed = True
         if self.save_output:
             self.save()
     
@@ -239,6 +245,7 @@ class PipelineBlock(ABC):
     
 class OutputBlock(PipelineBlock, ABC):
     name = "Output Block"
+    force_run: bool = True
     def __init__(self, keys: List[str], debug: bool = False) -> None:
         super().__init__(debug)
 
@@ -290,6 +297,7 @@ class Pipeline(PipelineBlock, ABC):
         # for initiation
         self._required_input_keys = list()
         self._optional_input_keys = list()
+        self._force_run_blocks: List[PipelineBlock] = list()
 
         self.build()
         assert "output" in self._blocks.keys()
@@ -319,7 +327,9 @@ class Pipeline(PipelineBlock, ABC):
         print(">>" + str.center("STARTED: " + self.name, l-5), ">>")
         print(">"*l)
 
-        self._blocks["output"]._auto_execute(input_dict)
+        for force_block in self._force_run_blocks:
+            force_block._auto_execute(input_dict)
+        # self._blocks["output"]._auto_execute(input_dict)
 
         print()
         print("<"*l)
@@ -362,7 +372,11 @@ class Pipeline(PipelineBlock, ABC):
         assert block_name not in self._blocks.keys()
         
         block._parent = self
-        block._name_in_parent = block_name # TODO
+        block._name_in_parent = block_name
+        if self.debug:
+            block.debug = self.debug
+        if block.force_run:
+            self._force_run_blocks.append(block)
         self._blocks[block_name] = block
     
     def add_blocks(

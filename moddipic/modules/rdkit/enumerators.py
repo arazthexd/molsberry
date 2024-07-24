@@ -20,8 +20,9 @@ class RDKitTautEnumerator(LigandEnumeratorBlock):
     name = "RDKIT Tautomer Enumerator"
 
     def __init__(self, max_tautomers: int = 4, minimize: bool = False,
-                 flatten: bool = False, debug: bool = False):
-        super().__init__(flatten=flatten, debug=debug)
+                 flatten: bool = False, debug: bool = False, 
+                 save: bool = False):
+        super().__init__(flatten=flatten, debug=debug, save=save)
 
         self.enumerator = rdMolStandardize.TautomerEnumerator()
         self.enumerator.SetRemoveBondStereo(False)
@@ -38,14 +39,13 @@ class RDKitTautEnumerator(LigandEnumeratorBlock):
                     reverse=True)
         
         if is_mol_3d(ligand):
+            ts = [Chem.AddHs(t) for t in ts]
             [rdDistGeom.EmbedMolecule(t) for t in ts]
-            ts = [Chem.AddHs(t, addCoords=True) for t in ts]
             [sync_mol_flexible_rotors(t, ligand) for t in ts]
+            if self.minimize:
+                [rdForceFieldHelpers.MMFFOptimizeMolecule(t) for t in ts]
         else:
             ts = [Chem.AddHs(t, addCoords=False) for t in ts]
-        
-        if self.minimize:
-            [rdForceFieldHelpers.MMFFOptimizeMolecule(t) for t in ts]
         
         return ts
 
@@ -55,8 +55,9 @@ class RDKitStereoEnumerator(LigandEnumeratorBlock):
     def __init__(self, 
                  tryEmbedding: bool = True, 
                  onlyUnassigned: bool = True,
-                 flatten: bool = False, debug: bool = False):
-        super().__init__(flatten=flatten, debug=debug)
+                 flatten: bool = False, debug: bool = False,
+                 save: bool = False):
+        super().__init__(flatten=flatten, debug=debug, save=save)
         self.options = StereoEnumerationOptions(tryEmbedding=tryEmbedding, 
                                                 onlyUnassigned=onlyUnassigned)
     
@@ -83,8 +84,9 @@ class RDKitRingEnumerator(LigandEnumeratorBlock):
                  minimize: bool = False,
                  max_per_ring: int = 2, 
                  dist_threshold: float = 0.5, 
-                 flatten: bool = False, debug: bool = False):
-        super().__init__(flatten=flatten, debug=debug) 
+                 flatten: bool = False, debug: bool = False, 
+                 save: bool = False):
+        super().__init__(flatten=flatten, debug=debug, save=save)
 
         self.num_confs: int = num_confs
         self.minimize: bool = minimize
