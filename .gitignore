@@ -11,3 +11,6 @@ tmp/
 manual/
 .model.pt
 _deprecated
+.vscode
+.pytest_cache
+__pycache__

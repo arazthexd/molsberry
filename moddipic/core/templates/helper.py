@@ -61,5 +61,47 @@ class SingleDataOperator(PipelineBlock, ABC):
         if self.debug: print("Input Data Batch Depth:", data.get_depth())
         
         return data
+
+class SingleDataConverter(SingleDataOperator, ABC):
     
-    
+    @abstractmethod
+    def convert(self, data: Any) -> Any:
+        pass
+
+    def execute(self, data: Any | Batched, 
+                no_bar: bool = False) -> Dict[str, Any]:
+        output = []
+        data = self.pre_execute(data)
+
+        if not no_bar:
+            iterator = tqdm(data)
+        else:
+            iterator = data
+
+        for element in iterator:
+            if isinstance(element, Batched):
+                output.append(self.execute(element, no_bar=True)[self.key])
+            else:
+                new_element = self.convert(element)
+                output.append(new_element)
+        
+        return {self.key: Batched(output)}
+
+class SingleDataEnumerator(SingleDataOperator, ABC):
+
+    def __init__(self, flatten: bool = False, debug: bool = False,
+                 save_output: bool = False):
+        super().__init__(debug=debug, save_output=save_output)
+        self.flatten = flatten
+
+    @abstractmethod
+    def enumerate(self, data: Any) -> Any:
+        pass
+
+    def check_input(self, input_dict: Dict[str, Any]):
+        super().check_input(input_dict)
+
+        self._input_depth = 0
+        if isinstance(input_dict["ligands"], Batched):
+            self._input_depth = input_dict["ligands"].get_depth()
+
