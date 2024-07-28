@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Tuple
 from tqdm import tqdm
 
-from ..pipeline import PipelineBlock
-from ..data.collections import Batched
+from ...pipeline import PipelineBlock
+from ...hi.collections import Batched
 
 class SingleDataOperator(PipelineBlock, ABC):
 
