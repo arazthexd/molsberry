@@ -1,6 +1,7 @@
 import pytest
 from moddipic.core.templates import proteins
 from moddipic.core.data.collections import Batched
+from moddipic.core.data.special_cls import Protein
 
 @pytest.fixture
 def protconverter():
@@ -25,12 +26,10 @@ def protselector():
 
 @pytest.fixture
 def input_proteins():
-    return Batched([
-        "Path/To/1.pdb",
-        "Path/To/2.pdb"
-    ])
+    pdb_paths = ["Path/To/1.pdb", "Path/To/2.pdb"]
+    return Batched([Protein.from_pdb_path(pdb) for pdb in pdb_paths])
 
-def test_ligand_converter_block(protconverter, input_proteins):
+def test_protein_converter_block(protconverter, input_proteins):
     block = protconverter()
     output = block.execute(input_proteins)
 
@@ -38,9 +37,9 @@ def test_ligand_converter_block(protconverter, input_proteins):
         output = block._auto_execute(input_proteins)
     assert len(output["protein"]) == len(input_proteins)
 
-def test_ligand_enumerator_block(protenumerator, input_proteins):
+def test_protein_enumerator_block(protenumerator, input_proteins):
     block = protenumerator()
-    raw_newlig = block.enumerate(input_proteins.data[0])
+    raw_newprot = block.enumerate(input_proteins.data[0])
 
     output = block.execute(input_proteins)
     with pytest.raises(AssertionError):
@@ -50,10 +49,10 @@ def test_ligand_enumerator_block(protenumerator, input_proteins):
     output = block.execute(input_proteins)
     assert len(output["protein"]) == len(input_proteins) * 2
 
-def test_ligand_selector_block(protselector, input_proteins):
+def test_protein_selector_block(protselector, input_proteins):
     block = protselector()
-    raw_newlig = block.select(input_proteins.data)
-    assert len(raw_newlig) == 1
+    raw_newprot = block.select(input_proteins.data)
+    assert len(raw_newprot) == 1
 
     output = block.execute(input_proteins)
     assert len(output["protein"]) == 1

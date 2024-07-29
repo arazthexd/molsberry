@@ -1,7 +1,8 @@
 import pytest
 from moddipic.core.templates import ligands
 from moddipic.core.data.collections import Batched
-from rdkit import Chem
+from moddipic.core.data.special_cls import Ligand
+# from rdkit import Chem
 
 @pytest.fixture
 def ligconverter():
@@ -26,11 +27,13 @@ def ligselector():
 
 @pytest.fixture
 def input_ligands():
-    return Batched([
-        Chem.MolFromSmiles("CCCOC"),
-        Chem.MolFromSmiles("CC"),
-        Chem.MolFromSmiles("O")
-    ])
+    smiles_list = ["CCCOC", "CC", "O"]
+    return Batched([Ligand.from_smiles(smi) for smi in smiles_list])
+    # return Batched([
+    #     Chem.MolFromSmiles("CCCOC"),
+    #     Chem.MolFromSmiles("CC"),
+    #     Chem.MolFromSmiles("O")
+    # ])
 
 def test_ligand_converter_block(ligconverter, input_ligands):
     block = ligconverter()

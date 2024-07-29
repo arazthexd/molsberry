@@ -5,6 +5,7 @@ from tqdm import tqdm
 import os
 
 from ..data.collections import Batched
+from ..data.special_cls import Protein
 from .helper import (
     SingleDataOperator,
     SingleDataConverter, 
@@ -12,28 +13,28 @@ from .helper import (
     SingleDataSelector
 )
 
-class PDBPathProteinSingleDataType:
-    single_data_type = str
+class ProteinSingleDataType:
+    single_data_type = Protein
     required_input_keys = ["protein"]
     optional_input_keys = []
     output_keys = ["protein"]
 
-class ProteinOperatorBlock(PDBPathProteinSingleDataType, 
+class ProteinOperatorBlock(ProteinSingleDataType, 
                            SingleDataOperator, 
                            ABC):
     name = "Unnamed Protein Operator" 
 
-class ProteinConverterBlock(PDBPathProteinSingleDataType, 
+class ProteinConverterBlock(ProteinSingleDataType, 
                             SingleDataConverter, 
                             ABC):
     name = "Unnamed Protein Converter"
 
-class ProteinEnumeratorBlock(PDBPathProteinSingleDataType, 
+class ProteinEnumeratorBlock(ProteinSingleDataType, 
                              SingleDataEnumerator, 
                              ABC):
     name = "Unnamed Protein Enumerator"
 
-class ProteinSelectorBlock(PDBPathProteinSingleDataType, 
+class ProteinSelectorBlock(ProteinSingleDataType, 
                            SingleDataSelector, 
                            ABC):
     name = "Unnamed Protein Selector"

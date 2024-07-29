@@ -3,28 +3,34 @@ from typing import List
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 
-from ..core.templates import LigandSelectorBlock
+from ...core.templates import LigandSelectorBlock
+
+from ...core.data.special_cls import Ligand
+from .representations import RDKitMolRep
+from .utils import ligand_to_rdmol
 
 class RDKitMWLigSelector(LigandSelectorBlock):
     name = "RDKit Ligand Weight Filtering"
-    def __init__(self, identifier: str = "all", 
-                 max_wt: float = 600.0, min_wt: float = 30.0, 
-                 debug: bool = False):
-        super().__init__(debug)
+
+    # NOTE: Deleted "identifier" from init...
+    def __init__(self, max_wt: float = 600.0, min_wt: float = 30.0, 
+                 debug: bool = False, save_output: bool = False):
+        super().__init__(debug=debug, save_output=save_output)
         self.max_wt = max_wt
         self.min_wt = min_wt
     
-    def select(self, ligands: List[Chem.Mol]) -> List[Chem.Mol]:
+    def select(self, ligands: List[Ligand]) -> List[Ligand]:
+        rdmols = [ligand_to_rdmol(ligand) for ligand in ligands]
         selected_ligs = []
-        for ligand in ligands:
-            if rdMolDescriptors.CalcExactMolWt(ligand) > self.max_wt:
+        for rdmol in rdmols:
+            if rdMolDescriptors.CalcExactMolWt(rdmol) > self.max_wt:
                 if self.debug:
-                    print(f"mol wt > {self.max_wt}: {Chem.MolToSmiles(ligand)}")
+                    print(f"mol wt > {self.max_wt}: {Chem.MolToSmiles(rdmol)}")
                 continue
-            if rdMolDescriptors.CalcExactMolWt(ligand) < self.min_wt:
+            if rdMolDescriptors.CalcExactMolWt(rdmol) < self.min_wt:
                 if self.debug:
-                    print(f"mol wt < {self.min_wt}: {Chem.MolToSmiles(ligand)}")
+                    print(f"mol wt < {self.min_wt}: {Chem.MolToSmiles(rdmol)}")
                 continue
-            selected_ligs.append(ligand)
+            selected_ligs.append(rdmol)
         
         return selected_ligs

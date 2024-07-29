@@ -54,9 +54,12 @@ class SingleDataOperator(PipelineBlock, ABC):
                 self.single_data_type
             )
     
-    def pre_execute(self, data):
+    def pre_execute(self, data: Batched | Any):
         if isinstance(data, self.single_data_type):
             data = Batched([data])
+        
+        assert data.get_basic_data_type() == self.single_data_type
+        # TODO: This is happening twice, in _auto_execute and here?
 
         if self.debug: print("Input Data Batch Depth:", data.get_depth())
         

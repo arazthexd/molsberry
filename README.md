@@ -1,6 +1,12 @@
 # Introduction
 MOdular Structure Based drug discovERY
 
+# To-Do
+- [ ] Add Scorer template to the core.
+- [ ] Add some ligand/protein operators that take a context such as pocket.
+- [ ] Complete OpenMM module (Lower Priority)
+- [ ] Add Cuby4 module needed for first stage of protein-ligand scoring.
+
 # Installation & Setup
 1) Clone this repository
 ```terminal

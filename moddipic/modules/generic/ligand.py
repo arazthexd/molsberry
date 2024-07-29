@@ -4,7 +4,7 @@ import os
 
 from rdkit import Chem
 
-from ..core.templates import LigandOperatorBlock
+from ...core.templates import LigandOperatorBlock
 
 class LigandSaver(LigandOperatorBlock):
     name = "Ligand Saver Block"
