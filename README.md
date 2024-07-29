@@ -6,6 +6,8 @@ MOdular Structure Based drug discovERY
 - [ ] Add some ligand/protein operators that take a context such as pocket.
 - [ ] Complete OpenMM module (Lower Priority)
 - [ ] Add Cuby4 module needed for first stage of protein-ligand scoring.
+- [ ] Update installation documentation as well as usage.
+- [ ] Create a way of generating list of used project citations (Important, Not Urgent)
 
 # Installation & Setup
 1) Clone this repository
