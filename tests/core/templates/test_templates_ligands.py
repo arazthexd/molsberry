@@ -14,13 +14,13 @@ def ligconverter():
 @pytest.fixture
 def contexedligconverter(): # TODO: Complete
     class LigConverterBlock(Contexted, ligands.LigandConverterBlock):
-        context_keys = ["context"]
-        context_types = [str]
+        input_context_keys = ["context"]
+        input_context_types = [str]
         def __init__(self, debug: bool = False, save_output: bool = False):
             ligands.LigandConverterBlock.__init__(self, debug, save_output)
             Contexted.__init__(self)
         def convert(self, ligand):
-            assert self.context
+            assert self.input_context
             return ligand
     return LigConverterBlock
 
@@ -64,10 +64,10 @@ def test_ligand_converter_block(ligconverter, input_ligands):
 
 def test_ligand_contexted_converter_block(contexedligconverter, input_ligands):
     block = contexedligconverter()
-    assert set(block.context.keys()) == set(["context"])
+    assert set(block.input_context.keys()) == set(["context"])
 
     raw_newlig = block.convert(input_ligands.data[0])
-    
+
     output = block.execute(input_ligands)
 
     with pytest.raises(AssertionError):
