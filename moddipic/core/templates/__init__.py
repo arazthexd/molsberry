@@ -3,4 +3,5 @@ from .ligands import (
     LigandEnumeratorBlock,
     LigandConverterBlock,
     LigandSelectorBlock,
+    LigandAnalyzerBlock
 )

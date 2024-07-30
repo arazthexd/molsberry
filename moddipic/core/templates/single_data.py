@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Type
 from tqdm import tqdm
 
 from ..pipeline import PipelineBlock
@@ -181,12 +181,27 @@ class SingleDataSelector(SingleDataOperator, ABC):
 
 class SingleDataAnalyzer(SingleDataOperator, ABC):
     
+    @property
+    @abstractmethod
+    def output_types(self) -> List[Type]:
+        pass
+
     @abstractmethod
     def analyze(self, data: Any) -> Dict[str, Any]:
         pass
 
+    def check_output(self, output_dict: Dict[str, Any]):
+        super().check_output(output_dict)
+
+        assert all(isinstance(v, Batched) for v in output_dict.values())
+        assert set(self.output_keys) == set(output_dict.keys())
+        for k, v in output_dict.items():
+            assert v.get_basic_data_type() == self.output_types[
+                self.output_keys.index(k)
+            ]
+
     def execute(self, data: Any | Batched, 
-                no_bar: bool = False) -> Dict[str, Any]:
+                no_bar: bool = False) -> Dict[str, Batched]:
         output = {k: list() for k in self.output_keys}
         data = self.pre_execute(data)
 

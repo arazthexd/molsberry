@@ -29,6 +29,7 @@ def ligselector():
 def liganalyzer():
     class LigAnalyzerBlock(ligands.LigandAnalyzerBlock):
         output_keys = ["random_number", "rand2"]
+        output_types = [float, float]
         def analyze(self, ligand):
             return {"random_number": random.random(), "rand2": random.random()}
     return LigAnalyzerBlock
