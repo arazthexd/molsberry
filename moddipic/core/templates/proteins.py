@@ -18,6 +18,7 @@ class ProteinSingleDataType:
     required_input_keys = ["protein"]
     optional_input_keys = []
     output_keys = ["protein"]
+    key = "protein"
 
 class ProteinOperatorBlock(ProteinSingleDataType, 
                            SingleDataOperator, 

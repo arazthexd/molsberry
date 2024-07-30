@@ -21,6 +21,7 @@ class LigandSingleDataType:
     required_input_keys = ["ligands"]
     optional_input_keys = []
     output_keys = ["ligands"]
+    key = "ligands"
 
 class LigandOperatorBlock(LigandSingleDataType, 
                           SingleDataOperator, 

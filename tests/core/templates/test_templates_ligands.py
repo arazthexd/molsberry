@@ -69,6 +69,7 @@ def test_ligand_contexted_converter_block(contexedligconverter, input_ligands):
     raw_newlig = block.convert(input_ligands.data[0])
 
     output = block.execute(input_ligands)
+    print("output =", output)
 
     with pytest.raises(AssertionError):
         output = block._auto_execute(input_ligands)

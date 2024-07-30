@@ -1,5 +1,5 @@
 from ...core.data.abstract import Representation
-from ...core.data.representations import SMILESRep
+from ...core.data.representations import SMILESRep, PDBPathProteinRep
 
 from rdkit import Chem
 
@@ -15,5 +15,12 @@ class RDKitMolRep(Representation):
         assert isinstance(smiles_rep, SMILESRep)
         smiles = smiles_rep.data
         mol = Chem.MolFromSmiles(smiles)
+        return cls(mol=mol)
+    
+    @classmethod
+    def from_PDBPathProteinRep(cls, pdb_rep: PDBPathProteinRep):
+        assert isinstance(pdb_rep, PDBPathProteinRep)
+        pdb_path = pdb_rep.data
+        mol = Chem.MolFromPDBFile(pdb_path, removeHs=False)
         return cls(mol=mol)
         

@@ -16,8 +16,9 @@ class SingleDataOperator(PipelineBlock, ABC):
         # TODO: Decide on whether to delete the above or not and alternatives?
     
     @property
+    @abstractmethod
     def key(self) -> str:
-        return self.required_input_keys[0]
+        pass # return self.required_input_keys[0]
 
     @property
     @abstractmethod
