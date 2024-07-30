@@ -12,6 +12,15 @@ def ligconverter():
     return LigConverterBlock
 
 @pytest.fixture
+def contexedligconverter(): # TODO: Complete
+    class LigConverterBlock(ligands.LigandConverterBlock):
+        required_input_keys = (
+            ligands.LigandConverterBlock.required_input_keys + ["context"]
+        )
+        def convert(self, ligand):
+            return ligand
+
+@pytest.fixture
 def ligenumerator():
     class LigEnumeratorBlock(ligands.LigandEnumeratorBlock):
         def enumerate(self, ligand):

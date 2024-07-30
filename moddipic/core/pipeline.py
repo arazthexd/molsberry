@@ -125,13 +125,8 @@ class PipelineBlock(ABC):
         
         return pkl_path
     
-    def _auto_execute(self, global_dict: Dict[str, Any]) -> None:
-        """Acts as a wrapper around `execute` for automatic runs.
-
-        Args:
-            global_dict (Dict[str, Any]): Keys and data not provided using the
-                block's connections or overwritten by input connections.
-        """
+    def _auto_execute_prep(self, 
+                           global_dict: Dict[str, Any]) -> Dict[str, Any]:
 
         # Initial Checks...
         assert isinstance(self._parent, Pipeline)
@@ -144,20 +139,36 @@ class PipelineBlock(ABC):
             for name, connection in self._in_connections.items()}
         block_input = global_dict.copy()
         block_input.update(connection_incoming_input)
+
+        return block_input
+    
+    def _auto_execute_carry_exe(self, block_input: Dict[str, Any]) -> None:
+        self._output = self.execute(**block_input)
+
+    def _auto_execute(self, global_dict: Dict[str, Any]) -> None:
+        """Acts as a wrapper around `execute` for automatic runs.
+
+        Args:
+            global_dict (Dict[str, Any]): Keys and data not provided using the
+                block's connections or overwritten by input connections.
+        """
+
+        block_input = self._auto_execute_prep(global_dict)
         
         # Do not execute if input is the same as last time and it has been
         # executed previously.
         # TODO: Figure out if repeating executions is because of the second part.
         if self._executed and self._latest_input == block_input:
-            self.save()
+            if self.save_output:
+                self.save()
             return
         
         # Logging...
-        # TODO: Use the logging module of python instead of print?
+        # TODO: Use the logging module of python instead of print
         print()
         print(f"[Running Pipe Block: ({self._name_in_parent}) {self.name}]")
         self.check_input(block_input)
-        self._output = self.execute(**block_input)
+        self._auto_execute_carry_exe(block_input)
         self._latest_input = block_input
         self._executed = True
         if self.save_output:

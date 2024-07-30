@@ -54,6 +54,9 @@ class SingleDataOperator(PipelineBlock, ABC):
                 output_dict[self.key], 
                 self.single_data_type
             )
+
+    def _auto_execute_carry_exe(self, block_input: Dict[str, Any]) -> None:
+        self._output = self.execute(data=block_input[self.key])
     
     def pre_execute(self, data: Batched | Any) -> Batched:
         if isinstance(data, self.single_data_type):
@@ -216,3 +219,4 @@ class SingleDataAnalyzer(SingleDataOperator, ABC):
                 output[key].append(value)
         
         return {k: Batched(v) for k, v in output.items()}
+    
