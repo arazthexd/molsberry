@@ -2,7 +2,7 @@ import pytest, random
 from moddipic.core.templates import ligands
 from moddipic.core.data.collections import Batched
 from moddipic.core.data.special_cls import Ligand
-# from rdkit import Chem
+from moddipic.core.templates.contexted import Contexted
 
 @pytest.fixture
 def ligconverter():
@@ -13,12 +13,16 @@ def ligconverter():
 
 @pytest.fixture
 def contexedligconverter(): # TODO: Complete
-    class LigConverterBlock(ligands.LigandConverterBlock):
-        required_input_keys = (
-            ligands.LigandConverterBlock.required_input_keys + ["context"]
-        )
+    class LigConverterBlock(Contexted, ligands.LigandConverterBlock):
+        context_keys = ["context"]
+        context_types = [str]
+        def __init__(self, debug: bool = False, save_output: bool = False):
+            ligands.LigandConverterBlock.__init__(self, debug, save_output)
+            Contexted.__init__(self)
         def convert(self, ligand):
+            assert self.context
             return ligand
+    return LigConverterBlock
 
 @pytest.fixture
 def ligenumerator():
@@ -52,6 +56,18 @@ def test_ligand_converter_block(ligconverter, input_ligands):
     block = ligconverter()
     raw_newlig = block.convert(input_ligands.data[0])
 
+    output = block.execute(input_ligands)
+
+    with pytest.raises(AssertionError):
+        output = block._auto_execute(input_ligands)
+    assert len(output["ligands"]) == len(input_ligands)
+
+def test_ligand_contexted_converter_block(contexedligconverter, input_ligands):
+    block = contexedligconverter()
+    assert set(block.context.keys()) == set(["context"])
+
+    raw_newlig = block.convert(input_ligands.data[0])
+    
     output = block.execute(input_ligands)
 
     with pytest.raises(AssertionError):
