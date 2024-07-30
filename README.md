@@ -3,7 +3,7 @@ MOdular Structure Based drug discovERY
 
 # To-Do
 - [x] Add Analyzer template to the core.
-- [ ] Add example rdkit analyzer to rdkit module.
+- [x] Add example rdkit analyzer to rdkit module.
 - [ ] Add some ligand/protein operators that take a context such as pocket.
 - [ ] Complete OpenMM module (Lower Priority)
 - [ ] Add Cuby4 module needed for first stage of protein-ligand scoring.
