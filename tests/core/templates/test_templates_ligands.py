@@ -1,4 +1,4 @@
-import pytest
+import pytest, random
 from moddipic.core.templates import ligands
 from moddipic.core.data.collections import Batched
 from moddipic.core.data.special_cls import Ligand
@@ -26,14 +26,17 @@ def ligselector():
     return LigSelectorBlock
 
 @pytest.fixture
+def liganalyzer():
+    class LigAnalyzerBlock(ligands.LigandAnalyzerBlock):
+        output_keys = ["random_number", "rand2"]
+        def analyze(self, ligand):
+            return {"random_number": random.random(), "rand2": random.random()}
+    return LigAnalyzerBlock
+
+@pytest.fixture
 def input_ligands():
     smiles_list = ["CCCOC", "CC", "O"]
     return Batched([Ligand.from_smiles(smi) for smi in smiles_list])
-    # return Batched([
-    #     Chem.MolFromSmiles("CCCOC"),
-    #     Chem.MolFromSmiles("CC"),
-    #     Chem.MolFromSmiles("O")
-    # ])
 
 def test_ligand_converter_block(ligconverter, input_ligands):
     block = ligconverter()
@@ -64,6 +67,17 @@ def test_ligand_selector_block(ligselector, input_ligands):
 
     output = block.execute(input_ligands)
     assert len(output["ligands"]) == 1
+
+def test_ligand_analyzer_block(liganalyzer, input_ligands):
+    block = liganalyzer()
+    raw_score = block.analyze(input_ligands.data[0])
+
+    output = block.execute(input_ligands)
+
+    with pytest.raises(AssertionError):
+        output = block._auto_execute(input_ligands)
+    assert len(output["random_number"]) == len(input_ligands)
+    assert len(output["rand2"]) == len(input_ligands)
 
 # TODO: Create tests for operations of selector, converter and enumerator.
 

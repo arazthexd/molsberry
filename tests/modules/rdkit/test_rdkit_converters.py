@@ -40,6 +40,7 @@ def test_rdkit_ligembedder(ligembedder,
     assert len(output["ligands"]) == len(input_ligands_moltype)
     assert all(is_mol_3d(lig.get_data(RDKitMolRep)) 
                for lig in output["ligands"])
+    assert output["ligands"].get_basic_data_type() == Ligand
     assert all(not is_mol_3d(lig.get_data(RDKitMolRep)) 
                for lig in input_ligands_moltype)
     
@@ -47,6 +48,7 @@ def test_rdkit_ligembedder(ligembedder,
     assert len(output["ligands"]) == len(input_ligands_smitype)
     assert all(is_mol_3d(lig.get_data(RDKitMolRep)) 
                for lig in output["ligands"])
+    assert output["ligands"].get_basic_data_type() == Ligand
     
 def test_rdkit_lighadder(lighadder, 
                          input_ligands_moltype,
@@ -57,8 +59,10 @@ def test_rdkit_lighadder(lighadder,
                for lig in output["ligands"])
     assert all("H" not in Chem.MolToSmiles(lig.get_data(RDKitMolRep)) 
                for lig in input_ligands_moltype)
+    assert output["ligands"].get_basic_data_type() == Ligand
     
     output = lighadder.execute(input_ligands_smitype)
     assert len(output["ligands"]) == len(input_ligands_smitype)
     assert all("H" in Chem.MolToSmiles(lig.get_data(RDKitMolRep)) 
                for lig in output["ligands"])
+    assert output["ligands"].get_basic_data_type() == Ligand

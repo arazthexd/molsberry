@@ -53,7 +53,7 @@ class RDKitTautEnumerator(LigandEnumeratorBlock):
         else:
             ts = [Chem.AddHs(t, addCoords=False) for t in ts]
         
-        return ts
+        return [Ligand(RDKitMolRep(t)) for t in ts]
 
 class RDKitStereoEnumerator(LigandEnumeratorBlock):
     name = "RDKIT Stereoisomer Enumerator"
@@ -80,7 +80,7 @@ class RDKitStereoEnumerator(LigandEnumeratorBlock):
             [sync_mol_flexible_rotors(newmol, Chem.AddHs(rdmol)) 
              for newmol in newmols]
 
-        return newmols
+        return [Ligand(RDKitMolRep(m)) for m in newmols]
 
 class RDKitRingEnumerator(LigandEnumeratorBlock):
     name = "RDKIT Ring Conformation Enumerator"
@@ -114,7 +114,7 @@ class RDKitRingEnumerator(LigandEnumeratorBlock):
         rdmolops.FindRingFamilies(rdmol)
         rinfo = rdmol.GetRingInfo()
         if rinfo.NumRings() == 0:
-            return [Chem.Mol(rdmol, confId=0)]
+            return [Ligand(RDKitMolRep(Chem.Mol(rdmol, confId=0)))]
         
         clusts_per_ring = []
         for i, ring_atoms in enumerate(rinfo.AtomRings()):
@@ -144,6 +144,6 @@ class RDKitRingEnumerator(LigandEnumeratorBlock):
                 final_mols.append(Chem.Mol(rdmol, confId=common.pop()))
         
         if final_mols:
-            return final_mols
+            return [Ligand(RDKitMolRep(fm)) for fm in final_mols]
         else:
-            return [Chem.Mol(rdmol, confId=0)]
+            return [Ligand(RDKitMolRep(Chem.Mol(rdmol, confId=0)))]

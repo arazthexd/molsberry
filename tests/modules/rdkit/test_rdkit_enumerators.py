@@ -46,24 +46,30 @@ def test_rdkit_tautenummer(tautenummer,
                            input_ligands_smitype):
     output = tautenummer.execute(input_ligands_moltype)
     assert len(output["ligands"]) > len(input_ligands_moltype)
+    assert output["ligands"].get_basic_data_type() == Ligand
     
     output = tautenummer.execute(input_ligands_smitype)
     assert len(output["ligands"]) > len(input_ligands_smitype)
+    assert output["ligands"].get_basic_data_type() == Ligand
     
 def test_rdkit_stereoenummer(stereoenummer, 
                              input_ligands_moltype,
                              input_ligands_smitype):
     output = stereoenummer.execute(input_ligands_moltype)
     assert len(output["ligands"]) > len(input_ligands_moltype)
+    assert output["ligands"].get_basic_data_type() == Ligand
     
     output = stereoenummer.execute(input_ligands_smitype)
     assert len(output["ligands"]) > len(input_ligands_smitype)
+    assert output["ligands"].get_basic_data_type() == Ligand
 
 def test_rdkit_ringenummer(ringenummer, 
                            input_ligands_moltype,
                            input_ligands_smitype):
     output = ringenummer.execute(input_ligands_moltype)
     assert len(output["ligands"]) > len(input_ligands_moltype)
+    assert output["ligands"].get_basic_data_type() == Ligand
     
     output = ringenummer.execute(input_ligands_smitype)
     assert len(output["ligands"]) > len(input_ligands_smitype)
+    assert output["ligands"].get_basic_data_type() == Ligand

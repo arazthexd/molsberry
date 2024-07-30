@@ -6,7 +6,7 @@ import os
 
 from ..data.collections import Batched
 from ..data.special_cls import Protein
-from .helper import (
+from .single_data import (
     SingleDataOperator,
     SingleDataConverter, 
     SingleDataEnumerator, 

@@ -10,9 +10,10 @@ class SingleDataOperator(PipelineBlock, ABC):
     def __init__(self, debug: bool = False, save_output: bool = False) -> None:
         super().__init__(debug=debug, save_output=save_output)
 
-        assert len(self.required_input_keys) == 1
-        assert len(self.output_keys) == 1
-        assert self.required_input_keys[0] == self.output_keys[0]
+        # assert len(self.required_input_keys) == 1
+        # assert len(self.output_keys) == 1
+        # assert self.required_input_keys[0] == self.output_keys[0]
+        # TODO: Decide on whether to delete the above or not and alternatives?
     
     @property
     def key(self) -> str:
@@ -54,7 +55,7 @@ class SingleDataOperator(PipelineBlock, ABC):
                 self.single_data_type
             )
     
-    def pre_execute(self, data: Batched | Any):
+    def pre_execute(self, data: Batched | Any) -> Batched:
         if isinstance(data, self.single_data_type):
             data = Batched([data])
         
@@ -177,3 +178,26 @@ class SingleDataSelector(SingleDataOperator, ABC):
             output.append(self.execute(element, no_bar=True)[self.key])
         
         return {self.key: Batched(output)}
+
+class SingleDataAnalyzer(SingleDataOperator, ABC):
+    
+    @abstractmethod
+    def analyze(self, data: Any) -> Dict[str, Any]:
+        pass
+
+    def execute(self, data: Any | Batched, 
+                no_bar: bool = False) -> Dict[str, Any]:
+        output = {k: list() for k in self.output_keys}
+        data = self.pre_execute(data)
+
+        if not no_bar:
+            iterator = tqdm(data)
+        else:
+            iterator = data
+
+        for element in iterator:
+            out_dict = self.analyze(element)
+            for key, value in out_dict.items():
+                output[key].append(value)
+        
+        return {k: Batched(v) for k, v in output.items()}

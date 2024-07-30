@@ -8,11 +8,12 @@ from ..pipeline import PipelineBlock
 from ..data.collections import Batched
 from ..data.special_cls import Ligand
 from ...utils.iotools import write_ligands
-from .helper import (
+from .single_data import (
     SingleDataOperator,
     SingleDataConverter, 
     SingleDataEnumerator, 
-    SingleDataSelector
+    SingleDataSelector,
+    SingleDataAnalyzer
 )
 
 class LigandSingleDataType:
@@ -40,5 +41,10 @@ class LigandSelectorBlock(LigandSingleDataType,
                           SingleDataSelector, 
                           ABC):
     name = "Unnamed Ligand Selector"
+
+class LigandAnalyzerBlock(LigandSingleDataType, 
+                          SingleDataAnalyzer, 
+                          ABC):
+    name = "Unnamed Ligand Analyzer"
 
     
