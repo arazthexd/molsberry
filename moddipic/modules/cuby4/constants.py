@@ -1,0 +1,1 @@
+CUBY4_TMP_PATH = "."

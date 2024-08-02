@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Tuple, Type
 
+from ...utils.iotools import generate_random_str
+
 class Representation(ABC):
     def __init__(self, data: Any):
         self.data = data
@@ -9,6 +11,10 @@ class Representation(ABC):
     @abstractmethod
     def rep_name(self):
         pass
+    
+    @staticmethod
+    def get_filename():
+        return generate_random_str(6)
 
 class SpecialDataClass(ABC):
     def __init__(self, init_rep: Representation | None = None):

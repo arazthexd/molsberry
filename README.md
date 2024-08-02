@@ -10,6 +10,10 @@ MOdular Structure Based drug discovERY
 - [ ] Add Cuby4 module needed for first stage of protein-ligand scoring.
 - [ ] Update installation documentation as well as usage.
 - [ ] Create a way of generating list of used project citations (Important, Not Urgent)
+- [ ] Add independent MOPAC module. (Urgent)
+- [ ] Testing with ASH package?
+
+NOTE: CUBY4 HAS LOTS OF PROBLEMS. BEWARE!
 
 # Installation & Setup
 1) Clone this repository
