@@ -17,18 +17,18 @@ except:
 class MOPACInputMolRep(Representation):
     rep_name = "mopac_input"
 
-    def __init__(self, keywords: List[str], coordinates: str,
+    def __init__(self, charge: int, coordinates: str,
                  setpi: List[Tuple[int, int]], neg_cvb: List[Tuple[int, int]],
                  desciption: str = "some description") -> None:
         data = {
-            "keywords": keywords,
+            "charge": charge,
             "description": desciption,
             "coordinates": coordinates,
             "setpi": setpi,
             "neg_cvb": neg_cvb
         }
         super().__init__(data)
-        self.keywords = keywords
+        self.charge = charge
         self.coordinates = coordinates
         self.description = desciption
         self.setpi = setpi
@@ -45,7 +45,7 @@ class MOPACInputMolRep(Representation):
             setpi = cls.rdmol_to_setpi(rdmol)
             neg_cvb = cls.rdmol_to_neg_cvb(rdmol)
             return MOPACInputMolRep(
-                keywords=[f"CHARGE={charge}"],
+                charge=charge,
                 coordinates=coordinates,
                 setpi=setpi,
                 neg_cvb=neg_cvb,

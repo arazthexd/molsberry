@@ -2,16 +2,27 @@
 MOdular Structure Based drug discovERY
 
 # To-Do
+## Core
 - [x] Add Analyzer template to the core.
-- [x] Add example rdkit analyzer to rdkit module.
-- [x] Add testing for entire pipelines (just core for now)
 - [x] Add some ligand/protein operators that take a context such as pocket.
-- [ ] Complete OpenMM module (Lower Priority)
-- [ ] Add Cuby4 module needed for first stage of protein-ligand scoring.
-- [ ] Update installation documentation as well as usage.
 - [ ] Create a way of generating list of used project citations (Important, Not Urgent)
-- [ ] Add independent MOPAC module. (Urgent)
-- [ ] Testing with ASH package?
+
+## New Modules
+- [ ] Cuby4 (On Hold...)
+- [ ] OpenMM (Low Priority)
+- [x] Independent MOPAC (Urgent)
+- [ ] Test + Decide on Adding ASH
+
+## Module Updates
+- [x] Add example rdkit analyzer to rdkit module.
+- [ ] (Urgent) Add all needed nodes for MOPAC (from different core templates)
+
+## Testing
+- [x] Add testing for entire pipelines (just core for now)
+
+## Docs
+- [ ] Update installation documentation as well as usage.
+
 
 NOTE: CUBY4 HAS LOTS OF PROBLEMS. BEWARE!
 
