@@ -55,4 +55,10 @@ pytest
 
 # Use
 The framework is designed to be used as a molecular or drug discovery pipeline creator. All is needed to use it is to create a couple of nodes (blocks) in your pipeline and connect their inputs and outputs. You will also need to add an `OutputBlock` if you want your pipeline to output some info generated during the run. At last, you can simply create an instance of your framework, run it with your inputs and the output will be returned. 
-To use
+
+Checkout the following example to get a feel of how it all works:
+```python
+TODO
+```
+
+**NOTE**: The framework is designed to be modular. You can create your own modules and blocks or use the modules written by others. If you have ideas for useful modules for different related interfaces, we appreciate and encourage you to contribute and submit a pull request for it. 
