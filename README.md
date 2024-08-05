@@ -26,3 +26,28 @@
 
 
 NOTE: CUBY4 HAS LOTS OF PROBLEMS. BEWARE!
+
+# Installation & Setup
+1) Create an environment to install required and optional packages in. 
+Using `conda` (preferred):
+```terminal
+TODO
+```
+Using `pip`:
+```terminal
+TODO
+```
+
+2) Install requirements for the core package:
+TODO
+
+3) Install requirements for each module you're planning to use:
+TODO
+
+4) Change global configuration to your liking:
+TODO
+
+5) Perform testing to make sure everything is right. 
+```terminal
+pytest
+```
