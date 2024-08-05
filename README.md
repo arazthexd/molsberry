@@ -28,12 +28,12 @@
 NOTE: CUBY4 HAS LOTS OF PROBLEMS. BEWARE!
 
 # Installation & Setup
-1) Create an environment to install required and optional packages in. 
-    - Using `conda` (preferred):
+1) Create an environment to install required and optional packages in. \
+Using `conda` (preferred):
 ```terminal
 TODO
 ```
-    - Using `pip`:
+Using `pip`:
 ```terminal
 TODO
 ```
