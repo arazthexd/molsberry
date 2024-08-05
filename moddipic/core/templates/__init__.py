@@ -5,3 +5,5 @@ from .ligands import (
     LigandSelectorBlock,
     LigandAnalyzerBlock
 )
+
+from .contexted import Contexted

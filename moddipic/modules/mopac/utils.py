@@ -16,7 +16,7 @@ def protein_to_mopacrep(protein: Protein) -> MOPACInputMolRep:
     pass
 
 def write_and_run_mopac(path: str, mopac_config: MOPACConfig, 
-                        out_base_dir: str, debug: bool = False):
+                        debug: bool = False):
     cur_dir = os.curdir
     with open(path, "w") as f:
         f.write(mopac_config.get_config_str())
