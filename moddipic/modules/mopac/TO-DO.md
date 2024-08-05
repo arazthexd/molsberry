@@ -1,3 +1,4 @@
 - [ ] Add optimizer which would inherit from converter, either ligand or protein (needs planning)
 - [ ] Add protein-ligand single point calc (needs PL complex to be defined.
 - [ ] Add protein-ligand optimizer.
+- [ ] At the end, multiple component systems should be considered. 
