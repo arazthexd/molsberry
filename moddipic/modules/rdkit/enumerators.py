@@ -15,13 +15,11 @@ from rdkit.Chem.MolStandardize import rdMolStandardize
 from rdkit.ML.Cluster import Butina
 
 from ...core.templates import LigandEnumeratorBlock
-from ...utils.moltools import is_mol_3d, sync_mol_flexible_rotors
-
 from ...core.data.special_cls import Ligand
 from .representations import RDKitMolRep
-from .utils import ligand_to_rdmol
+from .interface import RDKitInterface
 
-class RDKitTautEnumerator(LigandEnumeratorBlock):
+class RDKitTautEnumerator(RDKitInterface, LigandEnumeratorBlock):
     name = "RDKIT Tautomer Enumerator"
 
     def __init__(self, max_tautomers: int = 4, minimize: bool = False,
@@ -37,17 +35,17 @@ class RDKitTautEnumerator(LigandEnumeratorBlock):
         self.minimize = minimize
     
     def enumerate(self, ligand: Ligand) -> List[Ligand]:
-        rdmol = ligand_to_rdmol(ligand)
+        rdmol = self.special_cls_to_rdmol(ligand)
         rdmol_no_h = Chem.RemoveHs(rdmol, updateExplicitCount=True)
         ts: List[Chem.Mol] = list(self.enumerator.Enumerate(rdmol_no_h))
         ts = sorted(ts, 
                     key=lambda t: self.enumerator.ScoreTautomer(t), 
                     reverse=True)
         
-        if is_mol_3d(rdmol):
+        if self.is_mol_3d(rdmol):
             ts = [Chem.AddHs(t) for t in ts]
             [rdDistGeom.EmbedMolecule(t) for t in ts]
-            [sync_mol_flexible_rotors(t, rdmol) for t in ts]
+            [self.sync_mol_flexible_rotors(t, rdmol) for t in ts]
             if self.minimize:
                 [rdForceFieldHelpers.MMFFOptimizeMolecule(t) for t in ts]
         else:
@@ -55,7 +53,7 @@ class RDKitTautEnumerator(LigandEnumeratorBlock):
         
         return [Ligand(RDKitMolRep(t)) for t in ts]
 
-class RDKitStereoEnumerator(LigandEnumeratorBlock):
+class RDKitStereoEnumerator(RDKitInterface, LigandEnumeratorBlock):
     name = "RDKIT Stereoisomer Enumerator"
 
     def __init__(self, 
@@ -68,21 +66,21 @@ class RDKitStereoEnumerator(LigandEnumeratorBlock):
                                                 onlyUnassigned=onlyUnassigned)
     
     def enumerate(self, ligand: Chem.Mol) -> List[Chem.Mol]:
-        rdmol = ligand_to_rdmol(ligand)
+        rdmol = self.special_cls_to_rdmol(ligand)
         rdmol_h = Chem.AddHs(rdmol)
         rdmol_h.RemoveAllConformers()
         newmols = list(EnumerateStereoisomers(rdmol_h, self.options, 
                                               not self.debug))
         
         newmols = [Chem.AddHs(newmol) for newmol in newmols]
-        if is_mol_3d(rdmol):
+        if self.is_mol_3d(rdmol):
             [rdDistGeom.EmbedMolecule(newmol) for newmol in newmols]
-            [sync_mol_flexible_rotors(newmol, Chem.AddHs(rdmol)) 
+            [self.sync_mol_flexible_rotors(newmol, Chem.AddHs(rdmol)) 
              for newmol in newmols]
 
         return [Ligand(RDKitMolRep(m)) for m in newmols]
 
-class RDKitRingEnumerator(LigandEnumeratorBlock):
+class RDKitRingEnumerator(RDKitInterface, LigandEnumeratorBlock):
     name = "RDKIT Ring Conformation Enumerator"
     # TODO: This class needs serious changes...
     # TODO: Implement the method in GypsumDL?
@@ -102,7 +100,7 @@ class RDKitRingEnumerator(LigandEnumeratorBlock):
         self.dist_threshold: float = dist_threshold
 
     def enumerate(self, ligand: Chem.Mol) -> List[Chem.Mol]:
-        rdmol = ligand_to_rdmol(ligand)
+        rdmol = self.special_cls_to_rdmol(ligand)
         rdmol = Chem.Mol(rdmol)
         rdDistGeom.EmbedMultipleConfs(rdmol, 
                                       numConfs=self.num_confs, 

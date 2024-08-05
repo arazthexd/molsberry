@@ -1,5 +1,10 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Tuple, Type
+from copy import deepcopy
+
+import numpy as np
 
 from ...utils.iotools import generate_random_str
 
@@ -10,6 +15,10 @@ class Representation(ABC):
     @property
     @abstractmethod
     def rep_name(self):
+        pass
+
+    @abstractmethod
+    def update_coordinates(self, coords: np.ndarray):
         pass
     
     @staticmethod
@@ -72,3 +81,6 @@ class SpecialDataClass(ABC):
                 return getattr(rep_type, newrep_from_rep_name)(rep)
         
         raise NotImplementedError()
+    
+    def copy(self) -> SpecialDataClass:
+        return deepcopy(self) # TODO: Any better ways to copy more efficiently?

@@ -5,20 +5,20 @@ from ...core.templates import LigandConverterBlock
 from ...utils.moltools import addhs_based_on_confdim
 from ...core.data.special_cls import Ligand
 from .representations import RDKitMolRep
-from .utils import ligand_to_rdmol
+from .interface import RDKitInterface
 
-class RDKitLigandHAdder(LigandConverterBlock):
+class RDKitLigandHAdder(RDKitInterface, LigandConverterBlock):
     name = "RDKit Hydrogen Adder"
 
     def convert(self, ligand: Ligand) -> Ligand:
-        rdmol = ligand_to_rdmol(ligand)
+        rdmol = self.special_cls_to_rdmol(ligand)
         rdmol = addhs_based_on_confdim(rdmol)
         return Ligand(RDKitMolRep(rdmol))
 
-class RDKitLigandEmbedder(LigandConverterBlock):
+class RDKitLigandEmbedder(RDKitInterface, LigandConverterBlock):
     name = "RDKit Ligand Embedder"
 
     def convert(self, ligand: Chem.Mol) -> Chem.Mol:
-        rdmol = ligand_to_rdmol(ligand)
+        rdmol = self.special_cls_to_rdmol(ligand)
         rdDistGeom.EmbedMolecule(rdmol)
         return Ligand(RDKitMolRep(rdmol))

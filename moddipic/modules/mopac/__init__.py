@@ -1,5 +1,5 @@
 # NODES
-from .singlepoint import MOPACSinglePointCalculator
+from .singlepoint import MOPACLigandSinglePointCalculator
 
 # REPRESENTATION
 from .representations import MOPACInputMolRep

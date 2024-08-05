@@ -92,5 +92,18 @@ class MOPACInputMolRep(Representation):
                         neg_cvb_list.append((atom1+1, atom2+1))
             return neg_cvb_list
     
+    def update_coordinates(self, coords: np.ndarray):
+        lines = self.coordinates.splitlines()
+        newlines = []
+        for loc, line in zip(coords, lines):
+            x = "{:.3f}".format(loc[0]).rjust(6)
+            y = "{:.3f}".format(loc[1]).rjust(6)
+            z = "{:.3f}".format(loc[2]).rjust(6)
+            line = line[:32] + x + "  " + y + "  " + z + line[32+22:]
+            newlines.append(line)
+        self.coordinates = "\n".join(newlines)
+
+
+    
             
         

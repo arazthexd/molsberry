@@ -8,18 +8,19 @@ from ...core.templates import LigandAnalyzerBlock
 from ...core.templates.contexted import Contexted
 from ...core.data.special_cls import Ligand, Protein
 from .representations import RDKitMolRep
-from .utils import ligand_to_rdmol, protein_to_rdmol
+from .interface import RDKitInterface
 
-class RDKitMWCalculator(LigandAnalyzerBlock):
+class RDKitMWCalculator(RDKitInterface, LigandAnalyzerBlock):
     name = "RDKit Molecular Weight Calculator"
     output_keys = ["molwt"]
     output_types = [float]
 
     def analyze(self, ligand: Ligand) -> Dict[str, float]:
-        rdmol = ligand_to_rdmol(ligand)
+        rdmol = self.special_cls_to_rdmol(ligand)
         return {"molwt": rdMolDescriptors.CalcExactMolWt(rdmol)}
  
-class RDKitPLInteractionCalculator(Contexted, LigandAnalyzerBlock):
+class RDKitPLInteractionCalculator(RDKitInterface, Contexted, 
+                                   LigandAnalyzerBlock):
     output_keys = ["interaction"]
     output_types = [float]
     input_context_keys = ["protein"]
@@ -30,8 +31,8 @@ class RDKitPLInteractionCalculator(Contexted, LigandAnalyzerBlock):
         Contexted.__init__(self)
     
     def analyze(self, ligand: Ligand) -> Dict[str, float]:
-        lig = ligand_to_rdmol(ligand)
-        prot = protein_to_rdmol(self.input_context["protein"])
+        lig = self.special_cls_to_rdmol(ligand)
+        prot = self.special_cls_to_rdmol(self.input_context["protein"])
         merg = Chem.CombineMols(lig, prot)
 
         ligprops = rdForceFieldHelpers.MMFFGetMoleculeProperties(lig)

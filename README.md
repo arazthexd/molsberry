@@ -6,6 +6,7 @@
 - [x] Add Analyzer template to the core.
 - [x] Add some ligand/protein operators that take a context such as pocket.
 - [ ] Create a way of generating list of used project citations (Important, Not Urgent)
+- [ ] Add input block for inputs of different names...
 
 ## New Modules
 - [ ] Cuby4 (On Hold...)
@@ -17,6 +18,7 @@
 ## Module Updates
 - [x] Add example rdkit analyzer to rdkit module.
 - [ ] (Urgent) Add all needed nodes for MOPAC (from different core templates)
+- [ ] Write tests for mopac.
 
 ## Testing
 - [x] Add testing for entire pipelines (just core for now)

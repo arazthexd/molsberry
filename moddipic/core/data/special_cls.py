@@ -1,3 +1,5 @@
+import numpy as np
+
 from .abstract import SpecialDataClass, Representation
 from .representations import SMILESRep, PDBPathProteinRep
     
@@ -7,6 +9,13 @@ class Ligand(SpecialDataClass):
         ligand = cls()
         ligand.add_representation(SMILESRep(smiles))
         return ligand
+    
+    def return_with_new_coords(self, coords: np.ndarray):
+        newlig = self.copy()
+        for rep in newlig._representations.values():
+            rep: Representation
+            rep.update_coordinates(coords)
+        return newlig
 
 class Protein(SpecialDataClass):
     @classmethod
