@@ -11,7 +11,8 @@
 - [ ] Cuby4 (On Hold...)
 - [ ] OpenMM (Low Priority)
 - [x] Independent MOPAC (Urgent)
-- [ ] Test + Decide on Adding ASH
+- [ ] Test + Decide on Adding ASH For QMMM
+- [ ] Check out QMMM on MOPAC
 
 ## Module Updates
 - [x] Add example rdkit analyzer to rdkit module.
