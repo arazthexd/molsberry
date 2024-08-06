@@ -20,7 +20,7 @@ class MOPACSinglePointCalculator(MOPACInterface):
     def __init__(self, config: MOPACConfig = MOPACConfig()) -> None:
         config = deepcopy(config)
         config.keywords = [key for key in config.keywords 
-                                if key not in MOPAC_OPTIMIZE_KEYWORDS]
+                           if key not in MOPAC_OPTIMIZE_KEYWORDS]
         if "NOOPT" not in config.keywords:
             config.keywords.append("NOOPT")
 
@@ -47,9 +47,9 @@ class MOPACSinglePointCalculator(MOPACInterface):
 class MOPACLigandSinglePointCalculator(MOPACSinglePointCalculator,
                                        LigandAnalyzerBlock):
     name = "MOPAC Ligand Single Point Calculator"
-    output_keys = ["energy", "out_path"]
+    output_keys = ["energy", "out_path", "arc_path"]
     output_types = [float, str]
-    
+
     def __init__(self, config: MOPACConfig = MOPACConfig(), 
                  debug: bool = False, save_output: bool = False) -> None:
         LigandAnalyzerBlock.__init__(self, 

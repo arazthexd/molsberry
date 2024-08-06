@@ -18,6 +18,7 @@ from ...core.templates import LigandEnumeratorBlock
 from ...core.data.special_cls import Ligand
 from .representations import RDKitMolRep
 from .interface import RDKitInterface
+from .utils import special_cls_to_rdmol
 
 class RDKitTautEnumerator(RDKitInterface, LigandEnumeratorBlock):
     name = "RDKIT Tautomer Enumerator"
@@ -35,7 +36,7 @@ class RDKitTautEnumerator(RDKitInterface, LigandEnumeratorBlock):
         self.minimize = minimize
     
     def enumerate(self, ligand: Ligand) -> List[Ligand]:
-        rdmol = self.special_cls_to_rdmol(ligand)
+        rdmol = special_cls_to_rdmol(ligand)
         rdmol_no_h = Chem.RemoveHs(rdmol, updateExplicitCount=True)
         ts: List[Chem.Mol] = list(self.enumerator.Enumerate(rdmol_no_h))
         ts = sorted(ts, 
@@ -66,7 +67,7 @@ class RDKitStereoEnumerator(RDKitInterface, LigandEnumeratorBlock):
                                                 onlyUnassigned=onlyUnassigned)
     
     def enumerate(self, ligand: Chem.Mol) -> List[Chem.Mol]:
-        rdmol = self.special_cls_to_rdmol(ligand)
+        rdmol = special_cls_to_rdmol(ligand)
         rdmol_h = Chem.AddHs(rdmol)
         rdmol_h.RemoveAllConformers()
         newmols = list(EnumerateStereoisomers(rdmol_h, self.options, 
@@ -100,7 +101,7 @@ class RDKitRingEnumerator(RDKitInterface, LigandEnumeratorBlock):
         self.dist_threshold: float = dist_threshold
 
     def enumerate(self, ligand: Chem.Mol) -> List[Chem.Mol]:
-        rdmol = self.special_cls_to_rdmol(ligand)
+        rdmol = special_cls_to_rdmol(ligand)
         rdmol = Chem.Mol(rdmol)
         rdDistGeom.EmbedMultipleConfs(rdmol, 
                                       numConfs=self.num_confs, 

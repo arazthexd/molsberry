@@ -51,6 +51,8 @@ class MOPACOptimizer(MOPACInterface):
         with open(out_path, "r") as f:
             out_str = f.read()
 
+        print(out_path)
+        print(out_str)
         pre_energy = float(out_str.split("CYCLE:     1")[1].split()[8])
         post_energy = float(
             out_str.split("FINAL HEAT OF FORMATION =")[1].split()[0])
@@ -66,12 +68,14 @@ class MOPACOptimizer(MOPACInterface):
             "coordinates": coordinates
         }
 
-class MOPACLigandOptimizer(MOPACOptimizer, LigandConverterBlock):
+class MOPACLigandOptimizer(MOPACOptimizer, Contexted, LigandConverterBlock):
     name = "MOPAC Ligand Optimizer"
     output_keys = LigandConverterBlock.output_keys + \
         ["pre_energy", "post_energy"]
     output_types = [LigandConverterBlock.single_data_type] + \
         [float, str]
+    output_context_keys = ["pre_energy", "post_energy"]
+    output_context_types = [float, float]
 
     def __init__(self, config: MOPACConfig = MOPACConfig(), 
                  opt_algorithm: str | None = None,
@@ -85,8 +89,12 @@ class MOPACLigandOptimizer(MOPACOptimizer, LigandConverterBlock):
         mopac_rep = ligand.get_representation(MOPACInputMolRep)
         output = self.run_opt(mopac_rep)
         newlig = ligand.return_with_new_coords(output["coordinates"])
-        return {
-            self.output_keys[0]: newlig, # ligands
+        self.output_context = {
             "pre_energy": output["pre_energy"],
             "post_energy": output["post_energy"]
         }
+        return newlig
+        #     "ligands": newlig, # ligands
+        #     "pre_energy": output["pre_energy"],
+        #     "post_energy": output["post_energy"]
+        # } # TODO: Make it have output context

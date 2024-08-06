@@ -70,7 +70,8 @@ class MOPACMozymeConfig(MOPACConfig):
         old_keywords = self.keywords.copy()
         cvb_text = self._cvblist_to_cvbtxt(self.neg_cvb, mode="negative")
         # TODO: Also consider pos cvb
-        self.keywords = self.keywords + [f"CVB({cvb_text})"]
+        if len(cvb_text) > 0:
+            self.keywords = self.keywords + [f"CVB({cvb_text})"]
         config = super().get_config_str()
         self.keywords = old_keywords.copy()
         return config + "\n" + self.setpi

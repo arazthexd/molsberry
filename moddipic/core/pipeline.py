@@ -275,7 +275,8 @@ class OutputBlock(PipelineBlock, ABC):
         return self.keys
     
     def execute(self, **kwargs) -> Dict[str, Any]:
-        return kwargs
+        # return kwargs
+        return {k: v for k, v in kwargs.items() if k in self.keys}
     
     # def save(self):
 

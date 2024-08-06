@@ -22,7 +22,7 @@
 
 ## Testing
 - [x] Add testing for entire pipelines (just core for now)
-- [ ] Start testing for simple example pipelines using rdkit and mopac nodes as well as core.
+- [x] Start testing for simple example pipelines using rdkit and mopac nodes as well as core.
 
 ## Docs
 - [ ] Update installation documentation as well as usage.

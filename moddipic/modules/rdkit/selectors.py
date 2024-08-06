@@ -8,6 +8,7 @@ from ...core.templates import LigandSelectorBlock
 from ...core.data.special_cls import Ligand
 from .representations import RDKitMolRep
 from .interface import RDKitInterface
+from .utils import special_cls_to_rdmol
 
 class RDKitMWLigSelector(RDKitInterface, LigandSelectorBlock):
     name = "RDKit Ligand Weight Filtering"
@@ -20,7 +21,7 @@ class RDKitMWLigSelector(RDKitInterface, LigandSelectorBlock):
         self.min_wt = min_wt
     
     def select(self, ligands: List[Ligand]) -> List[Ligand]:
-        rdmols = [self.special_cls_to_rdmol(ligand) for ligand in ligands]
+        rdmols = [special_cls_to_rdmol(ligand) for ligand in ligands]
         selected_ligs = []
         for rdmol in rdmols:
             if rdMolDescriptors.CalcExactMolWt(rdmol) > self.max_wt:

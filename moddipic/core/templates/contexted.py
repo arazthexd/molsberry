@@ -43,8 +43,8 @@ class Contexted(ABC):
             self.input_context.items())
         
         self._output = self.execute(data=block_input[self.key])
-        assert all(type(v) == self.output_context_types(
-            self.output_context_keys.index(k)) for k, v in 
+        assert all(type(v) == self.output_context_types[
+            self.output_context_keys.index(k)] for k, v in 
             self.output_context.items())
         
         for key in self.output_context_keys:

@@ -5,9 +5,6 @@ from rdkit.Chem import (
     rdMolTransforms
 )
 
-from ...core.data.abstract import SpecialDataClass
-# from .representations import RDKitMolRep
-
 ROTOR_QUERY = Chem.MolFromSmarts("[!$(*#*)&!D1]-!@[!$(*#*)&!D1]")
 
 class RDKitInterface:
@@ -18,11 +15,6 @@ class RDKitInterface:
             if mol.GetConformer().Is3D():
                 return True
         return False
-    
-    @staticmethod
-    def special_cls_to_rdmol(special_cls: SpecialDataClass):
-        rdmol = Chem.Mol(special_cls.get_data("rdkit_mol"))
-        return rdmol
     
     @staticmethod
     def addhs_based_on_confdim(lig: Chem.Mol):

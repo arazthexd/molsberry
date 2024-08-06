@@ -12,7 +12,7 @@ class Batched:
             if i == 0:
                 ref_el_type = el_type
                 continue
-            print(ref_el_type, el_type)
+            # print(ref_el_type, el_type)
             assert ref_el_type == el_type
         return ref_el_type
     
