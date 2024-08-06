@@ -9,6 +9,14 @@ from .interface import RDKitInterface
 from .utils import special_cls_to_rdmol
 
 class RDKitLigandHAdder(RDKitInterface, LigandConverterBlock):
+    name = "RDKit Ligand Hydrogen Adder"
+
+    def convert(self, ligand: Ligand) -> Ligand:
+        rdmol = special_cls_to_rdmol(ligand)
+        rdmol = addhs_based_on_confdim(rdmol)
+        return Ligand(RDKitMolRep(rdmol))
+
+class RDKitHAdder(RDKitInterface, LigandConverterBlock):
     name = "RDKit Hydrogen Adder"
 
     def convert(self, ligand: Ligand) -> Ligand:

@@ -1,5 +1,8 @@
 # NODES
-from .singlepoint import MOPACLigandSinglePointCalculator
+from .singlepoint import (
+    MOPACLigandSinglePointCalculator,
+    MOPACProteinSinglePointCalculator
+)
 from .optimizers import MOPACLigandOptimizer
 
 # REPRESENTATION

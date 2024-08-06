@@ -10,7 +10,8 @@ from .single_data import (
     SingleDataOperator,
     SingleDataConverter, 
     SingleDataEnumerator, 
-    SingleDataSelector
+    SingleDataSelector,
+    SingleDataAnalyzer
 )
 
 class ProteinSingleDataType:
@@ -39,3 +40,8 @@ class ProteinSelectorBlock(ProteinSingleDataType,
                            SingleDataSelector, 
                            ABC):
     name = "Unnamed Protein Selector"
+
+class ProteinAnalyzerBlock(ProteinSingleDataType, 
+                           SingleDataAnalyzer, 
+                           ABC):
+    name = "Unnamed Protein Analyzer"

@@ -1,7 +1,7 @@
 import numpy as np
 
 from .abstract import SpecialDataClass, Representation
-from .representations import SMILESRep, PDBPathProteinRep
+from .representations import SMILESRep, PDBPathRep
     
 class Ligand(SpecialDataClass):
     @classmethod
@@ -21,8 +21,15 @@ class Protein(SpecialDataClass):
     @classmethod
     def from_pdb_path(cls, pdb_path: str):
         protein = cls()
-        protein.add_representation(PDBPathProteinRep(pdb_path))
+        protein.add_representation(PDBPathRep(pdb_path))
         return protein
+    
+    def return_with_new_coords(self, coords: np.ndarray):
+        newprot = self.copy()
+        for rep in newprot._representations.values():
+            rep: Representation
+            rep.update_coordinates(coords)
+        return newprot
 
 class PLComplex(SpecialDataClass):
     pass

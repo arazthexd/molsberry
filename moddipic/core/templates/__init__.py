@@ -6,4 +6,12 @@ from .ligands import (
     LigandAnalyzerBlock
 )
 
+from .proteins import (
+    ProteinOperatorBlock,
+    ProteinEnumeratorBlock,
+    ProteinConverterBlock,
+    ProteinSelectorBlock,
+    ProteinAnalyzerBlock
+)
+
 from .contexted import Contexted

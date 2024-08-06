@@ -14,7 +14,7 @@ class SMILESRep(Representation):
     def update_coordinates(self, coords: ndarray):
         return
 
-class PDBPathProteinRep(Representation):
+class PDBPathRep(Representation):
     rep_name = "pdb_path"
     def __init__(self, path: str):
         path = str(pathlib.Path(path).absolute())

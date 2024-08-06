@@ -6,7 +6,7 @@ import subprocess
 from copy import deepcopy
 
 from ...core.data.abstract import SpecialDataClass
-from ...core.templates import LigandAnalyzerBlock
+from ...core.templates import LigandAnalyzerBlock, ProteinAnalyzerBlock
 from ...core.templates import Contexted
 from ...core.data import Ligand, Protein
 from ...global_conf import RANDOM_JOB_KEY_LEN
@@ -48,7 +48,7 @@ class MOPACLigandSinglePointCalculator(MOPACSinglePointCalculator,
                                        LigandAnalyzerBlock):
     name = "MOPAC Ligand Single Point Calculator"
     output_keys = ["energy", "out_path", "arc_path"]
-    output_types = [float, str]
+    output_types = [float, str, str]
 
     def __init__(self, config: MOPACConfig = MOPACConfig(), 
                  debug: bool = False, save_output: bool = False) -> None:
@@ -58,6 +58,22 @@ class MOPACLigandSinglePointCalculator(MOPACSinglePointCalculator,
     
     def analyze(self, ligand: Ligand) -> Dict[str, Any]:
         mopac_rep = ligand.get_representation(MOPACInputMolRep)
+        return self.run_spc(mopac_rep)
+
+class MOPACProteinSinglePointCalculator(MOPACSinglePointCalculator,
+                                        ProteinAnalyzerBlock):
+    name = "MOPAC Protein Single Point Calculator"
+    output_keys = ["energy", "out_path", "arc_path"]
+    output_types = [float, str, str]
+
+    def __init__(self, config: MOPACConfig = MOPACConfig(), 
+                 debug: bool = False, save_output: bool = False) -> None:
+        ProteinAnalyzerBlock.__init__(self, 
+                                      debug=debug, save_output=save_output)
+        MOPACSinglePointCalculator.__init__(self, config=config)
+    
+    def analyze(self, protein: Protein) -> Dict[str, Any]:
+        mopac_rep = protein.get_representation(MOPACInputMolRep)
         return self.run_spc(mopac_rep)
 
 # TODO: Node for multiple molecule single point calculations

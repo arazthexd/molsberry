@@ -1,7 +1,7 @@
 from numpy import ndarray
 
 from ...core.data.abstract import Representation
-from ...core.data.representations import SMILESRep, PDBPathProteinRep
+from ...core.data.representations import SMILESRep, PDBPathRep
 from .interface import RDKitInterface
 
 from rdkit import Chem
@@ -22,10 +22,18 @@ class RDKitMolRep(Representation):
         return cls(mol=mol)
     
     @classmethod
-    def from_PDBPathProteinRep(cls, pdb_rep: PDBPathProteinRep):
-        assert isinstance(pdb_rep, PDBPathProteinRep)
+    def from_PDBPathRep(cls, pdb_rep: PDBPathRep):
+        assert isinstance(pdb_rep, PDBPathRep)
         pdb_path = pdb_rep.data
-        mol = Chem.MolFromPDBFile(pdb_path, removeHs=False)
+        mol = Chem.MolFromPDBFile(pdb_path, removeHs=False, sanitize=False)
+
+        # Fix COO groups not being ionized when read from pdb in rdkit
+        # TODO: Probably needs more attention
+        query_COO = Chem.MolFromSmarts("[$([O]-C(=O)-C)]")
+        for atom, in mol.GetSubstructMatches(query_COO):
+            atom: Chem.Atom = mol.GetAtomWithIdx(atom)
+            if atom.GetPDBResidueInfo().GetIsHeteroAtom() == False:
+                atom.SetFormalCharge(-1)
         return cls(mol=mol)
     
     def update_coordinates(self, coords: ndarray) -> None:

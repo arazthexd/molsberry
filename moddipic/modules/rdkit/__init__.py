@@ -1,3 +1,4 @@
+# NODES
 from .enumerators import (
     RDKitTautEnumerator,
     RDKitRingEnumerator,
@@ -10,3 +11,6 @@ from .converters import (
 from .selectors import (
     RDKitMWLigSelector,
 )
+
+# REPRESENTATION
+from .representations import RDKitMolRep

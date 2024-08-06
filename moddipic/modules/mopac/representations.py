@@ -3,10 +3,13 @@ from typing import Any, List, Tuple
 
 import os
 import pathlib
+import subprocess
 
 import numpy as np
 
 from ...core.data.abstract import Representation
+from ...core.data.representations import SMILESRep, PDBPathRep
+
 try:
     from rdkit import Chem
     from ...modules.rdkit.representations import RDKitMolRep
@@ -51,6 +54,16 @@ class MOPACInputMolRep(Representation):
                 neg_cvb=neg_cvb,
                 desciption="Converted from rdkit molecule representation."
             )
+        
+        @classmethod
+        def from_SMILESRep(cls, smiles_rep: SMILESRep):
+            rdkit_rep = RDKitMolRep.from_SMILESRep(smiles_rep)
+            return cls.from_RDKitMolRep(rdkit_rep)
+        
+        @classmethod
+        def from_PDBPathRep(cls, pdb_rep: PDBPathRep):
+            rdkit_rep = RDKitMolRep.from_PDBPathRep(pdb_rep)
+            return cls.from_RDKitMolRep(rdkit_rep)
     
         @staticmethod
         def rdmol_to_setpi(rdmol: Chem.Mol) -> List[Tuple[int, int]]:
