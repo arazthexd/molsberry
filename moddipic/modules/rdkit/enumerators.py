@@ -15,7 +15,7 @@ from rdkit.Chem.MolStandardize import rdMolStandardize
 from rdkit.ML.Cluster import Butina
 
 from ...core.templates import LigandEnumeratorBlock
-from ...core.data.special_cls import Ligand
+from ...core.data.data_types import Ligand
 from .representations import RDKitMolRep
 from .interface import RDKitInterface
 from .utils import special_cls_to_rdmol

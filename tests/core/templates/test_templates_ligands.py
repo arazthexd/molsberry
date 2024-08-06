@@ -1,7 +1,7 @@
 import pytest, random
 from moddipic.core.templates import ligands
 from moddipic.core.data.collections import Batched
-from moddipic.core.data.special_cls import Ligand
+from moddipic.core.data.data_types import Ligand
 from moddipic.core.templates.contexted import Contexted
 
 @pytest.fixture

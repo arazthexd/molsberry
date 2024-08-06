@@ -3,7 +3,7 @@ from rdkit.Chem import rdDistGeom
 
 from ...core.templates import LigandConverterBlock
 from ...utils.moltools import addhs_based_on_confdim
-from ...core.data.special_cls import Ligand
+from ...core.data.data_types import Ligand
 from .representations import RDKitMolRep
 from .interface import RDKitInterface
 from .utils import special_cls_to_rdmol

@@ -5,7 +5,7 @@ from rdkit.Chem import rdMolDescriptors
 
 from ...core.templates import LigandSelectorBlock
 
-from ...core.data.special_cls import Ligand
+from ...core.data.data_types import Ligand
 from .representations import RDKitMolRep
 from .interface import RDKitInterface
 from .utils import special_cls_to_rdmol

@@ -5,7 +5,7 @@ from moddipic.core.templates import (
     LigandConverterBlock, 
     LigandEnumeratorBlock
 )
-from moddipic.core.data.special_cls import Ligand
+from moddipic.core.data.data_types import Ligand
 from moddipic.core.data.representations import SMILESRep
 from moddipic.core.data.collections import Batched
 

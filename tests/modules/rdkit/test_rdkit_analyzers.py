@@ -7,7 +7,7 @@ from moddipic.modules.rdkit.analyzers import (
     RDKitMWCalculator,
     RDKitPLInteractionCalculator
 )
-from moddipic.core.data.special_cls import Ligand, Protein
+from moddipic.core.data.data_types import Ligand, Protein
 from moddipic.core.data.representations import SMILESRep
 from moddipic.modules.rdkit.representations import (
     RDKitMolRep, PDBPathProteinRep

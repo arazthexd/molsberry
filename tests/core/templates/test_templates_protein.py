@@ -1,7 +1,7 @@
 import pytest
 from moddipic.core.templates import proteins
 from moddipic.core.data.collections import Batched
-from moddipic.core.data.special_cls import Protein
+from moddipic.core.data.data_types import Protein
 
 @pytest.fixture
 def protconverter():

@@ -5,7 +5,7 @@ import glob
 import subprocess
 from copy import deepcopy
 
-from ...core.data.special_cls import Ligand, Protein
+from ...core.data.data_types import Ligand, Protein
 from ...utils.iotools import generate_random_str
 from .representations import MOPACInputMolRep
 from .configs import MOPACConfig

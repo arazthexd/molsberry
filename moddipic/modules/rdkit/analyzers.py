@@ -6,7 +6,7 @@ from rdkit.ForceField import rdForceField
 
 from ...core.templates import LigandAnalyzerBlock
 from ...core.templates.contexted import Contexted
-from ...core.data.special_cls import Ligand, Protein
+from ...core.data.data_types import Ligand, Protein
 from .representations import RDKitMolRep
 from .interface import RDKitInterface
 from .utils import special_cls_to_rdmol

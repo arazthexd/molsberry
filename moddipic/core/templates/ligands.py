@@ -6,7 +6,7 @@ import os
 
 from ..pipeline import PipelineBlock
 from ..data.collections import Batched
-from ..data.special_cls import Ligand
+from ..data.data_types import Ligand
 from ...utils.iotools import write_ligands
 from .single_data import (
     SingleDataOperator,

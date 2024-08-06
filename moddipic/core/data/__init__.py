@@ -1,3 +1,3 @@
-from .special_cls import Ligand, Protein
+from .data_types import LigandData, ProteinData
 
 from .representations import SMILESRep, PDBPathRep

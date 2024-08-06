@@ -16,23 +16,19 @@ class Representation(ABC):
     @abstractmethod
     def rep_name(self):
         pass
-
-    @abstractmethod
-    def update_coordinates(self, coords: np.ndarray):
-        pass
     
     @staticmethod
-    def get_filename():
+    def get_filename(): # TODO: Better introduction...
         return generate_random_str(6)
 
-class SpecialDataClass(ABC):
+class Data(ABC):
     def __init__(self, init_rep: Representation | None = None):
         self._representations = dict()
         self._default_rep = None
         self._latest_rep = None # TODO: Implement these...
         if init_rep:
             if not isinstance(init_rep, Representation):
-                raise TypeError()
+                raise TypeError("init_rep should be of type Representation.")
             self.add_representation(init_rep)
     
     def add_representation(self, rep: Representation):
@@ -49,7 +45,13 @@ class SpecialDataClass(ABC):
     def get_representation(self, rep: str | Type[Representation]):
         
         if isinstance(rep, str):
-            return self._get_representation_from_name(rep)
+            out = self._get_representation_from_name(rep)
+            if out:
+                return out
+        elif issubclass(rep, Representation):
+            pass
+        else:
+            raise TypeError("rep should be of type Representation.")
         
         self.create_representation(rep_type=rep)
         return self._get_representation_from_name(rep.rep_name)
@@ -63,7 +65,7 @@ class SpecialDataClass(ABC):
     
     def _get_representation_from_name(self, rep_name: str) -> Representation:
         # TODO: Add a dictionary for type names as well...
-        return self._representations[rep_name]
+        return self._representations.get(rep_name)
     
     def _get_representation_from_type(
             self, rep_type: Type[Representation]) -> Representation:
@@ -82,5 +84,5 @@ class SpecialDataClass(ABC):
         
         raise NotImplementedError()
     
-    def copy(self) -> SpecialDataClass:
+    def copy(self) -> Data:
         return deepcopy(self) # TODO: Any better ways to copy more efficiently?

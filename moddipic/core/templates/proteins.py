@@ -5,7 +5,7 @@ from tqdm import tqdm
 import os
 
 from ..data.collections import Batched
-from ..data.special_cls import Protein
+from ..data.data_types import Protein
 from .single_data import (
     SingleDataOperator,
     SingleDataConverter, 
