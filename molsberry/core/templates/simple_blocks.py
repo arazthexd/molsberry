@@ -26,6 +26,10 @@ class SimpleEnumeratorBlock(SimpleBlock, ABC):
         super().__init__(debug, save_output)
         self.flatten = flatten
 
+    @abstractmethod
+    def enumerate(self, some_inp: Any) -> List[Any]:
+        pass
+
     def execute(self, *args: Tuple[Data], **kwargs: Dict[str, Data]) -> \
         Dict[str, Data | BatchedData]:
         out = super().execute(*args, **kwargs)
@@ -33,7 +37,29 @@ class SimpleEnumeratorBlock(SimpleBlock, ABC):
             if k in self.input_batch_keys:
                 out[k] = v.flatten()
         return out
+
+class SimpleSelectorBlock(SimpleBlock, ABC):
+
+    @abstractmethod
+    def select(self, some_inps: List[Any]) -> List[Any]:
+        pass
+
+    def meets_criteria(self, pot_input: Dict[str, Data | BatchedData]) -> bool:
+        assert all(isinstance(data, Data) for data in pot_input.values())
+        assert isinstance(pot_input[self.input_keys[0]], BatchedData)
+        depth = pot_input[self.input_keys[0]].depth
+        return depth == 1
     
+    def split_input(self, full_input: Dict[str, Data]): 
+        super().split_input(full_input)
+        # TODO: Should I do this for everything?
+        self.batch_input = {k: v if isinstance(v, BatchedData) 
+                            else BatchedData([v])
+                            for k, v in self.batch_input.items()}
+        self.batch_input = {k: BatchedData([v]) 
+                            for k, v in self.batch_input.items()}
+
+
     # def operate(self, input_dict: Dict[str, Representation | BatchedRep]) \
     #     -> Dict[str, Representation | BatchedRep]:
 

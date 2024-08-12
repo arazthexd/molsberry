@@ -31,7 +31,8 @@ class RDKitConverterBlock(SimpleBlock, ABC):
 
         rdmol = input_dict[self.input_keys[0]].content
         rdmol = self.convert(rdmol)
-        return {self.input_keys[0]: self.input_reps[0](rdmol)}
+        main_out_key = self.output_keys[0]
+        return {main_out_key: self._get_out_rep(main_out_key)(rdmol)}
         
 class RDKitHydrogenAdder(RDKitInterface, RDKitConverterBlock):
     name = "rdhadder"

@@ -30,7 +30,7 @@ class RDKitMolRep(Molecule3DRep):
     def from_PDBPathRep(cls, pdb_rep: PDBPathRep):
         assert isinstance(pdb_rep, PDBPathRep)
         pdb_path = pdb_rep.content
-        mol = Chem.MolFromPDBFile(pdb_path, removeHs=False, sanitize=False)
+        mol = Chem.MolFromPDBFile(pdb_path, removeHs=False, sanitize=True)
 
         # Fix COO groups not being ionized when read from pdb in rdkit
         # TODO: Probably needs more attention
@@ -44,6 +44,9 @@ class RDKitMolRep(Molecule3DRep):
     @classmethod
     def from_RDKitMolRep(cls, rdmol_rep: RDKitMolRep):
         return cls(rdmol_rep.content)
+    
+    def to_RDKitMolRep(self) -> RDKitMolRep:
+        return RDKitMolRep(self.content)
     
     def update_coordinates(self, coords: ndarray) -> None:
         rdmol = self.content

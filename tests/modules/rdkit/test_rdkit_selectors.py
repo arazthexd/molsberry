@@ -2,39 +2,39 @@ import pytest
 
 from rdkit import Chem
 
-from moddipic.modules.rdkit.selectors import (
-    RDKitMWLigSelector
+from molsberry.modules.rdkit.selectors import (
+    RDKitMolWtSelector
 )
-from moddipic.core.data.data_types import Ligand
-from moddipic.core.data.representations import SMILESRep
-from moddipic.modules.rdkit.representations import RDKitMolRep
-from moddipic.core.data.collections import Batched
-from moddipic.utils.moltools import is_mol_3d
+from molsberry.core.data.data_types import MoleculeData
+from molsberry.core.data.representations import SMILESRep
+from molsberry.modules.rdkit.representations import RDKitMolRep
+from molsberry.core.data.collections import BatchedData
+from molsberry.utils.moltools import is_mol_3d
 
 @pytest.fixture
 def mwselector():
-    return RDKitMWLigSelector(debug=True, save_output=False, max_wt=600)
+    return RDKitMolWtSelector(debug=True, save_output=False, max_wt=600)
 
 @pytest.fixture
 def input_ligands_moltype():
     smis = ["C1CC(=O)CCC1F", "COC(=O)CCCN", 
             "CCc1cccnc1CC(C)(CC(I)(I)CC(I)CCCCC)I", "C1CCCCC1"]
     mols = [Chem.MolFromSmiles(smi) for smi in smis]
-    ligs = [Ligand(RDKitMolRep(mol)) for mol in mols]
-    return Batched(ligs)
+    ligs = [MoleculeData(RDKitMolRep(mol)) for mol in mols]
+    return BatchedData(ligs)
 
 @pytest.fixture
 def input_ligands_smitype():
     smis = ["C1CC(=O)CCC1F", "COC(=O)CCCN", 
             "CCc1cccnc1CC(C)(CC(I)(I)CC(I)CCCCC)I", "C1CCCCC1"]
-    ligs = [Ligand(SMILESRep(smi)) for smi in smis]
-    return Batched(ligs)
+    ligs = [MoleculeData(SMILESRep(smi)) for smi in smis]
+    return BatchedData(ligs)
 
 def test_rdkit_mwselector(mwselector, 
                           input_ligands_moltype,
                           input_ligands_smitype):
     output = mwselector.execute(input_ligands_moltype)
-    assert len(output["ligands"]) < len(input_ligands_moltype)
+    assert len(output["molecules"]) < len(input_ligands_moltype)
     
     output = mwselector.execute(input_ligands_smitype)
-    assert len(output["ligands"]) < len(input_ligands_smitype)
+    assert len(output["molecules"]) < len(input_ligands_smitype)

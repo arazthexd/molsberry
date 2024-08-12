@@ -94,13 +94,12 @@ class BatchOperatorBlock(PipelineBlock, ABC):
     def meets_criteria(self, pot_input: Dict[str, Data]) -> bool:
         pass
 
-    def split_input(self, full_input):
+    def split_input(self, full_input: Dict[str, Data]):
         self.batch_input = {k: v for k, v in full_input.items() 
                             if k in self.input_batch_keys}
         self.context_input = {k: v for k, v in full_input.items() 
                               if k in self.input_context_keys}
         
-
     def execute(self, *args: Tuple[Data], 
                 **kwargs: Dict[str, Data]) -> Dict[str, Data | BatchedData]:
 
@@ -109,6 +108,8 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         for i, arg in enumerate(args):
             full_input[self.input_keys[i]] = arg
         full_input.update(kwargs)
+
+        if self.debug: print(f"Executing with input: {full_input}")
 
         # Split input into two groups: context and batch (saved as att.)
         self.split_input(full_input)
@@ -140,6 +141,8 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         # Make sure all batch inputs are batches. if not, make them.
         batch_input = {k: v if isinstance(v, BatchedData) else BatchedData([v])
                        for k, v in batch_input.items()}
+        
+        if self.debug: print(f"Apply on batch: {batch_input}")
 
         # Define independent and paired groups.
         # Independents would be combined using `product`.
@@ -175,6 +178,8 @@ class BatchOperatorBlock(PipelineBlock, ABC):
             for member in pot_input_members:
                 pot_input.update(member)
             
+            if self.debug: print(f"pot_input: {pot_input}")
+
             # When the potential input is created, check if it meets criteria
             # to be an input for `operate` method.
             meets_crit: bool = self.meets_criteria(pot_input)
@@ -205,15 +210,31 @@ class BatchOperatorBlock(PipelineBlock, ABC):
                      input_dict: Dict[str, Data | BatchedData]) -> \
                         Dict[str, Representation | List[Representation]]:
         
+        if self.debug: print(f"Unwrapping input: {input_dict}")
+        
         unwrapped_dict: Dict[str, Representation | List[Representation]] = {}
         for k, v in input_dict.items():
             v: BatchedData | Data
 
-            try:
-                assert isinstance(v, self._get_inp_dtype(k))
-            except:
-                assert any(isinstance(v.basic_itype, t) 
-                           for t in self._get_inp_dtype(k))
+            print(self._get_inp_dtype(k))
+
+            if isinstance(v, BatchedData):
+                if isinstance(self._get_inp_dtype(k), list):
+                    assert any(isinstance(v.basic_itype, t) 
+                               for t in self._get_inp_dtype(k)) 
+                else:
+                    assert issubclass(v.basic_itype, self._get_inp_dtype(k))
+
+            elif isinstance(v, Data):
+                if isinstance(self._get_inp_dtype(k), list):
+                    assert any(isinstance(v, t) 
+                               for t in self._get_inp_dtype(k)) 
+                else:
+                    print(v, self._get_inp_dtype(k))
+                    assert isinstance(v, self._get_inp_dtype(k))
+
+            else:
+                raise TypeError()  
             
             try:
                 rep = v.get_representation(self._get_inp_rep(k))

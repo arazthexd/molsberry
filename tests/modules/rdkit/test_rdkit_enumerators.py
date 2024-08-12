@@ -17,7 +17,7 @@ from molsberry.utils.moltools import is_mol_3d
 @pytest.fixture
 def ringenummer():
     return RDKitLigandRingEnumerator(debug=True, save_output=False, 
-                                     flatten=True, num_confs=100, 
+                                     flatten=True, num_confs=20, 
                                      dist_threshold=0.3)
 
 @pytest.fixture

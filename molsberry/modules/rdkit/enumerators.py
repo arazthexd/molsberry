@@ -41,8 +41,9 @@ class RDKitLigEnumeratorBlock(SimpleEnumeratorBlock, ABC):
         rep: RDKitSmallMolRep = input_dict[self.input_keys[0]]
         rdmol = rep.content
         rdmols = self.enumerate(rdmol)
-        return {self.input_keys[0]: BatchedRep([self.input_reps[0](mol) 
-                                                for mol in rdmols])}
+        main_out_key = self.output_keys[0]
+        return {main_out_key: BatchedRep([self._get_out_rep(main_out_key)(mol) 
+                                          for mol in rdmols])}
 
 class RDKitLigandTautEnumerator(RDKitInterface, RDKitLigEnumeratorBlock):
     name = "rdtautenum_lig"

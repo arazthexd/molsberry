@@ -1,36 +1,47 @@
-from typing import List
+from typing import List, Dict, Union
 from abc import ABC, abstractmethod
 
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 
-from ...core.data import MoleculeData, LigandData, BatchedData
-from ...core.templates import SimpleBlock
+from ...core.data import MoleculeData, BatchedData, Representation, BatchedRep
+from ...core.templates import SimpleSelectorBlock
 
 from .representations import RDKitMolRep
 from .interface import RDKitInterface
 
-class RDKitSelectorBlock(SimpleBlock, ABC):
-    block_in_rep = RDKitMolRep
-    block_out_rep = RDKitMolRep
-    block_out_dtype = MoleculeData
+class RDKitSelectorBlock(SimpleSelectorBlock, ABC):
+    inputs = [
+        ("molecules", MoleculeData, RDKitMolRep, False)
+    ]
+    outputs = [
+        ("molecules", MoleculeData, RDKitMolRep, False)
+    ]
+    batch_groups = []
 
     @abstractmethod
-    def select_from_rdmols(self, rdmols: List[Chem.Mol]) -> List[Chem.Mol]:
+    def select(self, rdmols: List[Chem.Mol]) -> Union[Chem.Mol, List[Chem.Mol]]:
         pass
 
-    def select(self, batch: BatchedData) -> BatchedData:
-        rdmols: List[Chem.Mol] = \
-            batch.get_representation_content(self.block_in_rep)
-        rdmols = self.select_from_rdmols(rdmols)
-        moldata_list = [self.block_out_dtype(rdmol) for rdmol in rdmols]
-        return BatchedData(moldata_list)
+    def operate(self, input_dict: Dict[str, BatchedRep]) \
+        -> Dict[str, Representation | BatchedRep]:
+        batch = input_dict[self.input_keys[0]] # depth = 1
+        rdmols: List[Chem.Mol] = batch.content._item_list
+        rdmols: Chem.Mol | List[Chem.Mol] = self.select(rdmols)
+        
+        main_out_key = self.output_keys[0]
+
+        if isinstance(rdmols, Chem.Mol):
+            out = self._get_out_rep(main_out_key)(rdmols)
+        else:
+            out = BatchedRep([self._get_out_rep(main_out_key)(rdmol) 
+                              for rdmol in rdmols])
+        
+        return {main_out_key: out}
 
 class RDKitMolWtSelector(RDKitInterface, RDKitSelectorBlock):
     name = "rdmolwtsel"
-    display_name = "RDKit Ligand Weight Filtering"
-    input_keys = ["molecules"]
-    output_keys = ["molecules"]
+    display_name = "RDKit Molecule Weight Filtering"
 
     def __init__(self, max_wt: float = 600.0, min_wt: float = 30.0, 
                  debug: bool = False, save_output: bool = False):
@@ -38,7 +49,7 @@ class RDKitMolWtSelector(RDKitInterface, RDKitSelectorBlock):
         self.max_wt = max_wt
         self.min_wt = min_wt
     
-    def select_from_rdmols(self, rdmols: List[Chem.Mol]) -> List[Chem.Mol]:
+    def select(self, rdmols: List[Chem.Mol]) -> List[Chem.Mol]:
         selected_ligs = []
         for rdmol in rdmols:
             if rdMolDescriptors.CalcExactMolWt(rdmol) > self.max_wt:

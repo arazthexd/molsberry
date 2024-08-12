@@ -168,7 +168,12 @@ class BatchedData(Batched, Data):
         self._representations[rep_type.rep_name] = \
             self.get_representation(rep_type)
     
-    def get_representation(self, rep: str | Type[Representation]) -> BatchedRep:
+    def get_representation(
+            self, rep: str | Type[Representation] | None) -> BatchedRep:
+        
+        if rep is None:
+            return list(self._representations.values())[0]
+        
         if isinstance(rep, str):
             out = self._get_representation_from_name(rep)
         elif issubclass(rep, Representation):

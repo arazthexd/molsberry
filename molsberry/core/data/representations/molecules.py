@@ -52,3 +52,6 @@ class PDBPathRep(SmallMolRep, MacroMolRep, Molecule3DRep):
     def save_rep(self, exless_filename: str):
         rep_path = exless_filename + ".pdb"
         shutil.copy(self.content, rep_path)
+    
+    def update_coordinates(self, coords: ndarray):
+        raise NotImplementedError()
