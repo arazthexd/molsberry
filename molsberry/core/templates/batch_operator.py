@@ -94,6 +94,13 @@ class BatchOperatorBlock(PipelineBlock, ABC):
     def meets_criteria(self, pot_input: Dict[str, Data]) -> bool:
         pass
 
+    def split_input(self, full_input):
+        self.batch_input = {k: v for k, v in full_input.items() 
+                            if k in self.input_batch_keys}
+        self.context_input = {k: v for k, v in full_input.items() 
+                              if k in self.input_context_keys}
+        
+
     def execute(self, *args: Tuple[Data], 
                 **kwargs: Dict[str, Data]) -> Dict[str, Data | BatchedData]:
 
@@ -103,11 +110,8 @@ class BatchOperatorBlock(PipelineBlock, ABC):
             full_input[self.input_keys[i]] = arg
         full_input.update(kwargs)
 
-        # Split input into two groups: context and batch
-        self.batch_input = {k: v for k, v in full_input.items() 
-                            if k in self.input_batch_keys}
-        self.context_input = {k: v for k, v in full_input.items() 
-                              if k in self.input_context_keys}
+        # Split input into two groups: context and batch (saved as att.)
+        self.split_input(full_input)
         
         # Unwrap the context input data into context input representations.
         self.context_input = self.unwrap_input(self.context_input)
