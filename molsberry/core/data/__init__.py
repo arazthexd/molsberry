@@ -1,8 +1,16 @@
-# DATA TYPES
-from .abstract import Data
-from .data_types import *
+# Data, Representation
+from .abstract import Data, Representation
+
+# Collections
 from .collections import Batched, BatchedData, BatchedRep, BatchOperator
 
-# REPRESENTATION TYPES
-from .abstract import Representation
-from .representations import *
+# Molecules Data, Reps
+from .molecules import (
+    MoleculeRep, MoleculeData,
+    Molecule3DRep,
+    MacroMolRep, ProteinRep, PDBPathRep, ProteinData,
+    SmallMolRep, SMILESRep, LigandData
+)
+
+# Others...
+from .unspecified import UnspecifiedRep, UnspecifiedData

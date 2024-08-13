@@ -3,16 +3,13 @@ import os, pathlib
 
 from rdkit import Chem
 
-from molsberry.modules.rdkit.analyzers import (
+from molsberry.modules.rdkit.calculators import (
     RDKitMWCalculator,
     RDKitPLInteractionCalculator
 )
-from molsberry.core.data import Data, ProteinData, LigandData
-from molsberry.core.data.representations import SMILESRep
-from molsberry.modules.rdkit.representations import (
-    RDKitMolRep, PDBPathRep
-)
-from molsberry.core.data.collections import BatchedData
+from molsberry.core import Data, ProteinData, LigandData, BatchedData
+from molsberry.core import SMILESRep, PDBPathRep
+from molsberry.modules.rdkit import RDKitMolRep
 
 @pytest.fixture
 def mwcalcer():

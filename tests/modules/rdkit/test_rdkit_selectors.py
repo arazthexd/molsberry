@@ -5,11 +5,10 @@ from rdkit import Chem
 from molsberry.modules.rdkit.selectors import (
     RDKitMolWtSelector
 )
-from molsberry.core.data.data_types import MoleculeData
-from molsberry.core.data.representations import SMILESRep
+from molsberry.core import MoleculeData
+from molsberry.core import SMILESRep
 from molsberry.modules.rdkit.representations import RDKitMolRep
 from molsberry.core.data.collections import BatchedData
-from molsberry.utils.moltools import is_mol_3d
 
 @pytest.fixture
 def mwselector():

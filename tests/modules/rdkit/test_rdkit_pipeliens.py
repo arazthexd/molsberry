@@ -2,11 +2,12 @@ import os
 import pytest
 import subprocess
 
-from molsberry.core.pipeline import Pipeline, OutputBlock, InputBlock
-from molsberry.core.data import SMILESRep, LigandData
-
 from rdkit import Chem
-from molsberry.modules.rdkit.representations import RDKitMolRep
+
+from molsberry.core import Pipeline, OutputBlock, InputBlock
+from molsberry.core import SMILESRep, LigandData
+
+from molsberry.modules.rdkit import RDKitMolRep
 from molsberry.modules.rdkit import (
     RDKitLigandTautEnumerator, RDKitLigandHAdder, RDKitLigandEmbedder
 )

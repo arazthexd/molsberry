@@ -15,9 +15,11 @@ from rdkit.Chem.EnumerateStereoisomers import (
 from rdkit.Chem.MolStandardize import rdMolStandardize
 from rdkit.ML.Cluster import Butina # type: ignore
 
-from ...core.data import (
-    MoleculeData, Data, BatchedData, LigandData, BatchedRep, Representation)
-from ...core.templates import SimpleEnumeratorBlock
+from ...core import (
+    MoleculeData, Data, BatchedData, LigandData, 
+    BatchedRep, Representation
+)
+from ...core import SimpleEnumeratorBlock
 
 from .representations import RDKitSmallMolRep
 from .interface import RDKitInterface

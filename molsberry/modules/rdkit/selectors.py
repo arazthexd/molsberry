@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 
-from ...core.data import MoleculeData, BatchedData, Representation, BatchedRep
-from ...core.templates import SimpleSelectorBlock
+from ...core import MoleculeData, BatchedData, Representation, BatchedRep
+from ...core import SimpleSelectorBlock
 
 from .representations import RDKitMolRep
 from .interface import RDKitInterface

@@ -2,17 +2,16 @@ import pytest
 
 from rdkit import Chem
 
+from molsberry.core import LigandData, BatchedData
+from molsberry.core import SMILESRep
+
+from molsberry.modules.rdkit import RDKitMolRep
 from molsberry.modules.rdkit import (
     RDKitLigEnumeratorBlock,
     RDKitLigandTautEnumerator,
     RDKitLigandStereoEnumerator,
     RDKitLigandRingEnumerator
 )
-from molsberry.core.data.data_types import LigandData
-from molsberry.core.data.representations import SMILESRep
-from molsberry.modules.rdkit.representations import RDKitMolRep
-from molsberry.core.data.collections import BatchedData
-from molsberry.utils.moltools import is_mol_3d
 
 @pytest.fixture
 def ringenummer():

@@ -5,8 +5,8 @@ from numpy import ndarray
 
 from molsberry.core.data.abstract import Representation
 
-from ...core.data import Molecule3DRep, SmallMolRep, ProteinRep
-from ...core.data.representations import SMILESRep, PDBPathRep
+from ...core import Molecule3DRep, SmallMolRep, ProteinRep
+from ...core import SMILESRep, PDBPathRep
 from .interface import RDKitInterface
 
 from rdkit import Chem

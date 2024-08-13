@@ -3,20 +3,20 @@ import os
 
 from rdkit import Chem
 
-from molsberry.modules.rdkit.converters import (
+
+from molsberry.core import (
+    LigandData, BatchedData, MoleculeData, ProteinData
+)
+from molsberry.core import SMILESRep, PDBPathRep
+
+from molsberry.modules.rdkit import (
     RDKitLigandEmbedder,
     RDKitLigandHAdder,
     RDKitMMFFOptimizer,
     RDKitPLComplexOptimizer
 )
-from molsberry.core.data import (
-    LigandData, BatchedData, MoleculeData, ProteinData
-)
-from molsberry.core.data import SMILESRep
-from molsberry.modules.rdkit.representations import (
-    RDKitSmallMolRep, PDBPathRep
-)
-from molsberry.modules.rdkit.interface import RDKitInterface
+from molsberry.modules.rdkit import RDKitSmallMolRep
+from molsberry.modules.rdkit import RDKitInterface
 
 @pytest.fixture
 def ligembedder():

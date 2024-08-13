@@ -1,6 +1,14 @@
-from .batch_operator import BatchOperatorBlock
-from .simple_blocks import (
+# Batch Operator as backbone...
+from .batchop import BatchOperatorBlock
+
+# Simple blocks...
+from .simples import (
     SimpleBlock, 
     SimpleEnumeratorBlock, SimpleSelectorBlock
 )
-from .job_templates import *
+
+# Job templates for easier creation of custom blocks...
+from .jobs import (
+    EnergyJob, InteractionJob, OptimizeJob,
+    PLJob, PLInteractionJob, PLOptimizeJob
+)
