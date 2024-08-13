@@ -8,10 +8,8 @@ import glob
 from copy import deepcopy
 import pickle
 
-import numpy as np
-
-from ...utils.iotools import generate_random_str
 from ...global_conf import DATA_UNIQUE_CODE_LEN
+from ..utils import generate_random_str
 
 class Representation(ABC):
     def __init__(self, content: Any):
