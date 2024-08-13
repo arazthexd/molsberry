@@ -5,13 +5,12 @@ import glob
 import subprocess
 from copy import deepcopy
 
-from ...core.data.data_types import Ligand, Protein
 from ...utils.iotools import generate_random_str
 from .representations import MOPACInputMolRep
 from .configs import MOPACConfig
 
 from ...global_conf import RANDOM_JOB_KEY_LEN
-from .shared import MOPAC_OUTPUT_DIR, MOPAC_TMP_DIR, MOPAC_OPTIMIZE_KEYWORDS
+from .shared import MOPAC_OPTIMIZE_KEYWORDS
 
 class MOPACInterface:
     def __init__(self, config: MOPACConfig = MOPACConfig()) -> None:
@@ -29,9 +28,9 @@ class MOPACInterface:
             [self.config.add_fragment(rep) for rep in mopac_rep]
     
     @staticmethod
-    def run_job(config: MOPACConfig, debug: bool):
+    def run_job(config: MOPACConfig, base_dir: str, debug: bool):
         path = MOPACInterface.generate_random_input_file(
-            base_dir=MOPAC_TMP_DIR, 
+            base_dir=base_dir, 
             key_length=RANDOM_JOB_KEY_LEN
         )
 

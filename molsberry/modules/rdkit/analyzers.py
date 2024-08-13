@@ -10,7 +10,7 @@ from ...core.data import (
     MoleculeData, Data, BatchedData, LigandData, UnspecifiedData, 
     Representation, UnspecifiedRep, ProteinData, PDBPathRep
 )
-from ...core.templates import SimpleBlock
+from ...core.templates import SimpleBlock, PLInteractionJob
 
 from .representations import RDKitMolRep, RDKitSmallMolRep
 from .interface import RDKitInterface
@@ -60,75 +60,23 @@ class RDKitMMFFEnergyCalculator(RDKitInterface, RDKitAnalyzerBlock):
     def analyze(self, rdmol: Chem.Mol) -> Dict[str, float]:
         return {"energy": self.calc_energy(rdmol)}
     
-class RDKitPLInteractionCalculator(RDKitInterface, RDKitAnalyzerBlock):
+class RDKitPLInteractionCalculator(RDKitInterface, PLInteractionJob,
+                                   RDKitAnalyzerBlock):
+    # NOTE: Inheritance order is important...
     name = "rdprotliginter"
     display_name = "RDKit Protein Ligand Interaction Calculator"
-    inputs = [
-        ("ligands", LigandData, RDKitMolRep, False),
-        ("proteins", ProteinData, RDKitMolRep, False)
-    ]
-    outputs = [
-        ("e_interaction", None, None, False),
-        ("e_ligand", None, None, False),
-        ("e_protein", None, None, False),
-        ("e_complex", None, None, False)
-    ]
-    batch_groups = [("ligands", "proteins")]
+    lig_rep = RDKitMolRep
+    prot_rep = RDKitMolRep
 
-    def __init__(self, energy_fn: Optional[Callable] = None,
-                 debug: bool = False, save_output: bool = False) -> None:
-        super().__init__(debug=debug, save_output=save_output)
-        if energy_fn is None:
-            calculator = RDKitMMFFEnergyCalculator()
-            energy_fn = calculator.calc_energy
-        self.energy_fn = energy_fn
+    def __init__(self, debug: bool = False, save_output: bool = False) -> None:
+        RDKitAnalyzerBlock.__init__(self, debug=debug, save_output=save_output)
+        self.calculator = RDKitMMFFEnergyCalculator()
+        energy_fn = self.calculator.calc_energy
+        PLInteractionJob.__init__(self, energy_fn)
+
+    def combine_pl(self, ligand, protein):
+        return Chem.CombineMols(ligand, protein)
     
     def analyze(self, rdmol: Chem.Mol, rdprot: Chem.Mol) -> Dict[str, float]:
-        e_ligand = self.energy_fn(rdmol)
-        e_protein = self.energy_fn(rdprot)
-        
-        pl_complex = Chem.CombineMols(rdmol, rdprot)
-        e_complex = self.energy_fn(pl_complex)
-
-        return {
-            "e_interaction": e_complex - e_ligand - e_protein,
-            "e_ligand": e_ligand,
-            "e_protein": e_protein,
-            "e_complex": e_complex
-        }
-        
-# class RDKitPLInteractionCalculator(RDKitInterface, RDKitAnalyzerBlock):
-#     output_keys = ["interaction"]
-#     output_types = [float]
-#     input_context_keys = ["protein"]
-#     input_context_types = [Protein]
-#     name = "rdprotliginter"
-#     display_name = "RDKit Protein Ligand Interaction Calculator"
-#     input_keys = ["molecules"]
-#     output_keys = ["molwt"]
-
-#     def __init__(self, debug: bool = False, save_output: bool = False):
-#         LigandAnalyzerBlock.__init__(self, debug=debug, save_output=save_output)
-#         Contexted.__init__(self)
-    
-#     def analyze(self, ligand: Ligand) -> Dict[str, float]:
-#         lig = special_cls_to_rdmol(ligand)
-#         prot = special_cls_to_rdmol(self.input_context["protein"])
-#         merg = Chem.CombineMols(lig, prot)
-
-#         ligprops = rdForceFieldHelpers.MMFFGetMoleculeProperties(lig)
-#         ligff = rdForceFieldHelpers.MMFFGetMoleculeForceField(lig, ligprops)
-#         ligff: rdForceField.ForceField
-#         lig_energy = ligff.CalcEnergy()
-
-#         protprops = rdForceFieldHelpers.MMFFGetMoleculeProperties(prot)
-#         protff = rdForceFieldHelpers.MMFFGetMoleculeForceField(prot, protprops)
-#         protff: rdForceField.ForceField
-#         prot_energy = protff.CalcEnergy()
-
-#         mergprops = rdForceFieldHelpers.MMFFGetMoleculeProperties(merg)
-#         mergff = rdForceFieldHelpers.MMFFGetMoleculeForceField(merg, mergprops)
-#         mergff: rdForceField.ForceField
-#         merg_energy = mergff.CalcEnergy()
-
-#         return {"interaction": merg_energy - lig_energy - prot_energy}
+        interaction_dict = self.calc_interaction(rdmol, rdprot)
+        return interaction_dict

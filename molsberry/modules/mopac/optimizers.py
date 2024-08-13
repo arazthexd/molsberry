@@ -6,17 +6,14 @@ from copy import deepcopy
 
 import numpy as np
 
-from ...core.templates import LigandConverterBlock
-from ...core.templates import Contexted
-from ...core.data import Ligand, Protein
+from ...core.templates import SimpleBlock
+from ...core.data import LigandData, ProteinData
 from ...global_conf import RANDOM_JOB_KEY_LEN
 
 from .representations import MOPACInputMolRep
 from .configs import MOPACConfig, MOPACMozymeConfig
 from .interface import MOPACInterface
 from .shared import (
-    MOPAC_OUTPUT_DIR, 
-    MOPAC_TMP_DIR, 
     MOPAC_OPTIMIZE_KEYWORDS,
     MOPAC_SINGLEPOINT_KEYWORDS
 )
@@ -68,33 +65,33 @@ class MOPACOptimizer(MOPACInterface):
             "coordinates": coordinates
         }
 
-class MOPACLigandOptimizer(MOPACOptimizer, Contexted, LigandConverterBlock):
-    name = "MOPAC Ligand Optimizer"
-    output_keys = LigandConverterBlock.output_keys + \
-        ["pre_energy", "post_energy"]
-    output_types = [LigandConverterBlock.single_data_type] + \
-        [float, str]
-    output_context_keys = ["pre_energy", "post_energy"]
-    output_context_types = [float, float]
+# class MOPACLigandOptimizer(MOPACOptimizer, Contexted, LigandConverterBlock):
+#     name = "MOPAC Ligand Optimizer"
+#     output_keys = LigandConverterBlock.output_keys + \
+#         ["pre_energy", "post_energy"]
+#     output_types = [LigandConverterBlock.single_data_type] + \
+#         [float, str]
+#     output_context_keys = ["pre_energy", "post_energy"]
+#     output_context_types = [float, float]
 
-    def __init__(self, config: MOPACConfig = MOPACConfig(), 
-                 opt_algorithm: str | None = None,
-                 debug: bool = False, save_output: bool = False) -> None:
-        LigandConverterBlock.__init__(self, 
-                                     debug=debug, save_output=save_output)
-        MOPACOptimizer.__init__(self, config=config, 
-                                opt_algorithm=opt_algorithm)
+#     def __init__(self, config: MOPACConfig = MOPACConfig(), 
+#                  opt_algorithm: str | None = None,
+#                  debug: bool = False, save_output: bool = False) -> None:
+#         LigandConverterBlock.__init__(self, 
+#                                      debug=debug, save_output=save_output)
+#         MOPACOptimizer.__init__(self, config=config, 
+#                                 opt_algorithm=opt_algorithm)
     
-    def convert(self, ligand: Ligand) -> Ligand:
-        mopac_rep = ligand.get_representation(MOPACInputMolRep)
-        output = self.run_opt(mopac_rep)
-        newlig = ligand.return_with_new_coords(output["coordinates"])
-        self.output_context = {
-            "pre_energy": output["pre_energy"],
-            "post_energy": output["post_energy"]
-        }
-        return newlig
-        #     "ligands": newlig, # ligands
-        #     "pre_energy": output["pre_energy"],
-        #     "post_energy": output["post_energy"]
-        # } # TODO: Make it have output context
+#     def convert(self, ligand: Ligand) -> Ligand:
+#         mopac_rep = ligand.get_representation(MOPACInputMolRep)
+#         output = self.run_opt(mopac_rep)
+#         newlig = ligand.return_with_new_coords(output["coordinates"])
+#         self.output_context = {
+#             "pre_energy": output["pre_energy"],
+#             "post_energy": output["post_energy"]
+#         }
+#         return newlig
+#         #     "ligands": newlig, # ligands
+#         #     "pre_energy": output["pre_energy"],
+#         #     "post_energy": output["post_energy"]
+#         # } # TODO: Make it have output context

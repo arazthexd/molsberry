@@ -3,3 +3,4 @@ from .simple_blocks import (
     SimpleBlock, 
     SimpleEnumeratorBlock, SimpleSelectorBlock
 )
+from .job_templates import PLInteractionJob

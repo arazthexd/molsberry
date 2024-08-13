@@ -1,36 +1,67 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Callable
+from abc import ABC, abstractmethod
 
 import os
 import glob
 import subprocess
 from copy import deepcopy
 
-from ...core.data.abstract import SpecialDataClass
-from ...core.templates import LigandAnalyzerBlock, ProteinAnalyzerBlock
-from ...core.templates import Contexted
-from ...core.data import Ligand, Protein
+from molsberry.core.data import Representation
+
+from ...core.data import LigandData, ProteinData, MoleculeData
+from ...core.templates import SimpleBlock, PLInteractionJob
 from ...global_conf import RANDOM_JOB_KEY_LEN
 
 from .representations import MOPACInputMolRep
 from .configs import MOPACConfig, MOPACMozymeConfig
 from .interface import MOPACInterface
-from .shared import MOPAC_OUTPUT_DIR, MOPAC_TMP_DIR, MOPAC_OPTIMIZE_KEYWORDS
+from .shared import MOPAC_OPTIMIZE_KEYWORDS
 
-class MOPACSinglePointCalculator(MOPACInterface):
-    def __init__(self, config: MOPACConfig = MOPACConfig()) -> None:
+class MOPACSinglePointCalculator(MOPACInterface, SimpleBlock):
+    name = "mopacspc"
+    display_name = "MOPAC Single Point Calculator"
+    inputs = [
+        ("molecules", MoleculeData, MOPACInputMolRep, False)
+    ]
+    outputs = [
+        ("energy", None, None, False),
+        ("out_path", None, None, False),
+        ("arc_path", None, None, False)
+    ]
+    batch_groups = []
+    potential_mopac_input_keys = ["molecules", "molecule", "ligands", "ligand",
+                                  "proteins", "protein", "pockets", "pocket"]
+
+    def __init__(self, config: MOPACConfig = MOPACConfig(),
+                 debug: bool = False, save_output: bool = False) -> None:
         config = deepcopy(config)
         config.keywords = [key for key in config.keywords 
                            if key not in MOPAC_OPTIMIZE_KEYWORDS]
         if "NOOPT" not in config.keywords:
             config.keywords.append("NOOPT")
 
-        super().__init__(config=config)
+        MOPACInterface.__init__(self, config=config)
+        SimpleBlock.__init__(self, debug=debug, save_output=save_output)
+
+    def operate(self, input_dict: Dict[str, MOPACInputMolRep]) \
+        -> Dict[str, Representation]:
+        mopac_input_keys = [k for k in self.input_keys
+                            if k in self.potential_mopac_input_keys]
+        assert len(mopac_input_keys) > 0
+
+        result_dict = self.run_spc([input_dict[k] for k in mopac_input_keys])
+        return {k: self._get_out_rep(k)(v) for k, v in result_dict.items()}
+
+    def calc_energy(self, mopac_rep: MOPACInputMolRep | List[MOPACInputMolRep]):
+        out = self.run_spc(mopac_rep)
+        return out["energy"]
 
     def run_spc(self, mopac_rep: MOPACInputMolRep | List[MOPACInputMolRep], 
                 debug: bool = False) -> Dict[str, Any]:
         self.reset_config()
         self.update_config(mopac_rep=mopac_rep)
-        out_path, arc_path = self.run_job(self.config, debug)
+        out_path, arc_path = self.run_job(config=self.config, debug=debug,
+                                          base_dir=self.base_dir)
         with open(out_path, "r") as f:
             out_str = f.read()
 
@@ -41,39 +72,46 @@ class MOPACSinglePointCalculator(MOPACInterface):
             "arc_path": arc_path,
             "energy": hf
         }
-
-    # TODO: save_output implementation with new path system.
         
-class MOPACLigandSinglePointCalculator(MOPACSinglePointCalculator,
-                                       LigandAnalyzerBlock):
-    name = "MOPAC Ligand Single Point Calculator"
-    output_keys = ["energy", "out_path", "arc_path"]
-    output_types = [float, str, str]
+class MOPACLigandSinglePointCalculator(MOPACSinglePointCalculator):
+    name = "mopacspc_lig"
+    display_name = "MOPAC Ligand Single Point Calculator"
+    inputs = [
+        ("ligands", LigandData, MOPACInputMolRep, False)
+    ]
+    mopac_inputs = ["ligands"]
 
-    def __init__(self, config: MOPACConfig = MOPACConfig(), 
+class MOPACProteinSinglePointCalculator(MOPACSinglePointCalculator):
+    name = "mopacspc_prot"
+    display_name = "MOPAC Protein Single Point Calculator"
+    inputs = [
+        ("proteins", ProteinData, MOPACInputMolRep, False)
+    ]
+    mopac_inputs = ["proteins"]
+
+class MOPACPLInteractionCalculator(PLInteractionJob, 
+                                   MOPACSinglePointCalculator):
+    name = "mopac_plinter"
+    display_name = "MOPAC Protein Ligand Interaction Calculator"
+    lig_rep = MOPACInputMolRep
+    prot_rep = MOPACInputMolRep
+
+    def __init__(self, config = MOPACConfig(),
                  debug: bool = False, save_output: bool = False) -> None:
-        LigandAnalyzerBlock.__init__(self, 
-                                     debug=debug, save_output=save_output)
-        MOPACSinglePointCalculator.__init__(self, config=config)
-    
-    def analyze(self, ligand: Ligand) -> Dict[str, Any]:
-        mopac_rep = ligand.get_representation(MOPACInputMolRep)
-        return self.run_spc(mopac_rep)
+        MOPACSinglePointCalculator.__init__(self,
+                                            debug=debug, 
+                                            save_output=save_output, 
+                                            config=config)
+        self.calculator = MOPACProteinSinglePointCalculator(config=config)
+        energy_fn = self.calculator.calc_energy
+        PLInteractionJob.__init__(self, energy_fn=energy_fn)
 
-class MOPACProteinSinglePointCalculator(MOPACSinglePointCalculator,
-                                        ProteinAnalyzerBlock):
-    name = "MOPAC Protein Single Point Calculator"
-    output_keys = ["energy", "out_path", "arc_path"]
-    output_types = [float, str, str]
-
-    def __init__(self, config: MOPACConfig = MOPACConfig(), 
-                 debug: bool = False, save_output: bool = False) -> None:
-        ProteinAnalyzerBlock.__init__(self, 
-                                      debug=debug, save_output=save_output)
-        MOPACSinglePointCalculator.__init__(self, config=config)
+    def combine_pl(self, ligand: MOPACInputMolRep, protein: MOPACInputMolRep):
+        return [ligand, protein]
     
-    def analyze(self, protein: Protein) -> Dict[str, Any]:
-        mopac_rep = protein.get_representation(MOPACInputMolRep)
-        return self.run_spc(mopac_rep)
+    def run_spc(self, reps: List[MOPACInputMolRep]) -> Dict[str, float]:
+        assert len(reps) == 2
+        interaction_dict = self.calc_interaction(reps[0], reps[1])
+        return interaction_dict
 
 # TODO: Node for multiple molecule single point calculations

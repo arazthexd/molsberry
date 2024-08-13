@@ -3,7 +3,7 @@ from .singlepoint import (
     MOPACLigandSinglePointCalculator,
     MOPACProteinSinglePointCalculator
 )
-from .optimizers import MOPACLigandOptimizer
+# from .optimizers import MOPACLigandOptimizer
 
 # REPRESENTATION
 from .representations import MOPACInputMolRep

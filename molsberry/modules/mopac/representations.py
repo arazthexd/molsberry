@@ -1,14 +1,9 @@
 from __future__ import annotations
 from typing import Any, List, Tuple
 
-import os
-import pathlib
-import subprocess
-
 import numpy as np
 
-from ...core.data.abstract import Representation
-from ...core.data.representations import SMILESRep, PDBPathRep
+from ...core.data import Representation, SMILESRep, PDBPathRep
 
 try:
     from rdkit import Chem
@@ -40,7 +35,7 @@ class MOPACInputMolRep(Representation):
     if RDKIT_SUCCESSFUL_IMPORT:
         @classmethod
         def from_RDKitMolRep(cls, rdkit_rep: RDKitMolRep):
-            rdmol = Chem.Mol(rdkit_rep.data)
+            rdmol = Chem.Mol(rdkit_rep.content)
             coordinates = "\n".join(
                 [line for line in Chem.MolToPDBBlock(rdmol).split("\n") 
                  if "ATOM" in line or "HETATM" in line])
@@ -54,6 +49,9 @@ class MOPACInputMolRep(Representation):
                 neg_cvb=neg_cvb,
                 desciption="Converted from rdkit molecule representation."
             )
+        
+        def to_RDKitMolRep(self):
+            raise NotImplementedError() # TODO: Implement this (not urgent)
         
         @classmethod
         def from_SMILESRep(cls, smiles_rep: SMILESRep):

@@ -236,6 +236,7 @@ class BatchOperatorBlock(PipelineBlock, ABC):
             else:
                 raise TypeError()  
             
+            print(self._get_inp_rep(k))
             try:
                 rep = v.get_representation(self._get_inp_rep(k))
             except:
