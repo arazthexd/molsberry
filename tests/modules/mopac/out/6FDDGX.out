@@ -1,0 +1,334 @@
+ *******************************************************************************
+ **                                                                           **
+ **                              MOPAC v22.1.1                                **
+ **                                                                           **
+ *******************************************************************************
+ **          Digital Object Identifier (DOI): 10.5281/zenodo.6511958          **
+ **    Visit the DOI location for information on how to cite this program.    **
+ *******************************************************************************
+
+                              PM7 CALCULATION RESULTS
+
+ *******************************************************************************
+ *  CALCULATION DONE:                                Tue Aug 13 16:41:06 2024  *
+ *  GEO-OK     - OVERRIDE INTERATOMIC DISTANCE AND OTHER SAFETY CHECKS
+ *  PDBOUT     - PRINT GEOMETRY IN PDB FORMAT
+ *  START_RES  - STARTING RESIDUE NUMBERS DEFINED
+ *  Keyword:     START_RES=(1) 
+ *  MOZYME     - USE LOCALIZED M.O.s IN SOLVING THE SCF EQUATIONS
+ *  NOOPT      - DO NOT OPTIMIZE ANY COORDINATES
+ *
+ *
+ *
+ *                 CHARGE ON SYSTEM = 0
+ *
+ *
+ *
+ *  T=         - A TIME OF 172800.0 SECONDS REQUESTED
+ *  DUMP=N     - RESTART FILE WRITTEN EVERY 7200.0 SECONDS REQUESTED
+ *******************************************************************************
+ START_RES=(1) PDBOUT MOZYME GEO-OK NOOPT CHARGE=0
+ MOPACMozymeConfig
+ | Converted from rdkit molecule representation.
+   ATOM                 CHEMICAL                   X               Y               Z
+  NUMBER                 SYMBOL               (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
+ 
+     1       C(HETATM    1  C1  UNL A   1)  -17.42500000     27.49900000     -1.36100000   
+     2       C(HETATM    2  C2  UNL A   1)  -17.95400000     26.24600000     -1.35900000   
+     3       N(HETATM    3  N1  UNL A   1)  -17.27500000     25.16700000     -0.76900000   
+     4       C(HETATM    4  C3  UNL A   1)  -16.00200000     25.30600000     -0.14800000   
+     5       O(HETATM    5  O1  UNL A   1)  -15.44900000     24.32700000      0.30200000   
+     6       C(HETATM    6  C4  UNL A   1)  -15.45800000     26.70200000     -0.13200000   
+     7       C(HETATM    7  C5  UNL A   1)  -16.15700000     27.76300000     -0.73100000   
+     8       C(HETATM    8  C6  UNL A   1)  -15.52700000     29.06900000     -0.65400000   
+     9       N(HETATM    9  N2  UNL A   1)  -14.31600000     29.20800000     -0.02200000   
+    10       C(HETATM   10  C7  UNL A   1)  -13.73900000     28.10100000      0.54500000   
+    11       N(HETATM   11  N3  UNL A   1)  -14.25200000     26.85000000      0.50700000   
+    12       N(HETATM   12  N4  UNL A   1)  -16.14500000     30.20800000     -1.14300000   
+    13       C(HETATM   13  C8  UNL A   1)  -15.46600000     31.54200000     -1.12900000   
+    14       C(HETATM   14  C9  UNL A   1)  -14.43800000     31.64900000     -2.27700000   
+    15       C(HETATM   15  C10 UNL A   1)  -13.76900000     33.02600000     -2.22700000   
+    16       C(HETATM   16  C11 UNL A   1)  -14.81100000     34.14600000     -2.37300000   
+    17       C(HETATM   17  C12 UNL A   1)  -15.89400000     34.04100000     -1.29000000   
+    18       C(HETATM   18  C13 UNL A   1)  -16.53800000     32.64500000     -1.25200000   
+    19       H(HETATM   19  H1  UNL A   1)  -17.97300000     28.30000000     -1.86100000   
+    20       H(HETATM   20  H2  UNL A   1)  -18.92000000     26.02500000     -1.83300000   
+    21       H(HETATM   21  H3  UNL A   1)  -17.77200000     24.25000000     -0.72000000   
+    22       H(HETATM   22  H4  UNL A   1)  -12.77300000     28.25900000      1.06600000   
+    23       H(HETATM   23  H5  UNL A   1)  -16.88600000     30.08700000     -1.84400000   
+    24       H(HETATM   24  H6  UNL A   1)  -14.95100000     31.64800000     -0.13500000   
+    25       H(HETATM   25  H7  UNL A   1)  -14.96700000     31.52600000     -3.25300000   
+    26       H(HETATM   26  H8  UNL A   1)  -13.67600000     30.84500000     -2.17700000   
+    27       H(HETATM   27  H9  UNL A   1)  -13.24700000     33.14900000     -1.25300000   
+    28       H(HETATM   28  H10 UNL A   1)  -13.02800000     33.10000000     -3.05100000   
+    29       H(HETATM   29  H11 UNL A   1)  -14.31900000     35.14100000     -2.29200000   
+    30       H(HETATM   30  H12 UNL A   1)  -15.29600000     34.07100000     -3.37600000   
+    31       H(HETATM   31  H13 UNL A   1)  -15.45400000     34.27100000     -0.29500000   
+    32       H(HETATM   32  H14 UNL A   1)  -16.69800000     34.79300000     -1.50100000   
+    33       H(HETATM   33  H15 UNL A   1)  -17.14800000     32.49500000     -2.17700000   
+    34       H(HETATM   34  H16 UNL A   1)  -17.22200000     32.60300000     -0.37600000   
+ 
+
+ General Reference for PM7:
+ "Optimization of Parameters for Semiempirical Methods VI: More Modifications to the 
+ NDDO Approximations and Re-optimization of Parameters", J. J. P. Stewart, J. Mol. Mod., 1:32, 19 (2013)
+ https://link.springer.com/article/10.1007/s00894-012-1667-x
+
+           Empirical Formula: C13 H16 N4 O  =    34 atoms
+
+
+
+      MOLECULAR POINT GROUP   :   C1  
+
+          NO CHARGES FOUND.
+
+          COMPUTED CHARGE ON SYSTEM: +0, THIS IS THE SAME AS THE CHARGE DEFINED IN THE DATA-SET.
+
+ -------------------------------------------------------------------------------
+ START_RES=(1) PDBOUT MOZYME GEO-OK NOOPT CHARGE=0
+ MOPACMozymeConfig
+ | Converted from rdkit molecule representation.
+
+
+     NO PARAMETERS MARKED FOR OPTIMIZATION, SO 1SCF WAS USED  
+     SCF FIELD WAS ACHIEVED                                   
+
+
+                              PM7 CALCULATION
+                                                       MOPAC v22.1.1 Linux
+                                                       Tue Aug 13 16:41:06 2024
+
+
+
+
+          FINAL HEAT OF FORMATION =         -2.20581 KCAL/MOL =      -9.22912 KJ/MOL
+
+
+
+          NO. OF FILLED LEVELS    =         47
+          MOLECULAR WEIGHT        =        244.2956         POINT GROUP:  C1  
+
+          MOLECULAR DIMENSIONS (Angstroms)
+
+            Atom       Atom       Distance
+            H    29    H    21    11.53292
+            H    22    H    20     6.20830
+            H    34    H    28     4.13153
+
+
+          SCF CALCULATIONS        =          1
+ 
+          WALL-CLOCK TIME         =      0.055 SECONDS
+          COMPUTATION TIME        =      0.052 SECONDS
+
+
+
+
+   ATOM                 CHEMICAL                   X               Y               Z
+  NUMBER                 SYMBOL               (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
+ 
+     1       C(HETATM    1  C1  UNL A   1)  -17.42500000     27.49900000     -1.36100000   
+     2       C(HETATM    2  C2  UNL A   1)  -17.95400000     26.24600000     -1.35900000   
+     3       N(HETATM    3  N1  UNL A   1)  -17.27500000     25.16700000     -0.76900000   
+     4       C(HETATM    4  C3  UNL A   1)  -16.00200000     25.30600000     -0.14800000   
+     5       O(HETATM    5  O1  UNL A   1)  -15.44900000     24.32700000      0.30200000   
+     6       C(HETATM    6  C4  UNL A   1)  -15.45800000     26.70200000     -0.13200000   
+     7       C(HETATM    7  C5  UNL A   1)  -16.15700000     27.76300000     -0.73100000   
+     8       C(HETATM    8  C6  UNL A   1)  -15.52700000     29.06900000     -0.65400000   
+     9       N(HETATM    9  N2  UNL A   1)  -14.31600000     29.20800000     -0.02200000   
+    10       C(HETATM   10  C7  UNL A   1)  -13.73900000     28.10100000      0.54500000   
+    11       N(HETATM   11  N3  UNL A   1)  -14.25200000     26.85000000      0.50700000   
+    12       N(HETATM   12  N4  UNL A   1)  -16.14500000     30.20800000     -1.14300000   
+    13       C(HETATM   13  C8  UNL A   1)  -15.46600000     31.54200000     -1.12900000   
+    14       C(HETATM   14  C9  UNL A   1)  -14.43800000     31.64900000     -2.27700000   
+    15       C(HETATM   15  C10 UNL A   1)  -13.76900000     33.02600000     -2.22700000   
+    16       C(HETATM   16  C11 UNL A   1)  -14.81100000     34.14600000     -2.37300000   
+    17       C(HETATM   17  C12 UNL A   1)  -15.89400000     34.04100000     -1.29000000   
+    18       C(HETATM   18  C13 UNL A   1)  -16.53800000     32.64500000     -1.25200000   
+    19       H(HETATM   19  H1  UNL A   1)  -17.97300000     28.30000000     -1.86100000   
+    20       H(HETATM   20  H2  UNL A   1)  -18.92000000     26.02500000     -1.83300000   
+    21       H(HETATM   21  H3  UNL A   1)  -17.77200000     24.25000000     -0.72000000   
+    22       H(HETATM   22  H4  UNL A   1)  -12.77300000     28.25900000      1.06600000   
+    23       H(HETATM   23  H5  UNL A   1)  -16.88600000     30.08700000     -1.84400000   
+    24       H(HETATM   24  H6  UNL A   1)  -14.95100000     31.64800000     -0.13500000   
+    25       H(HETATM   25  H7  UNL A   1)  -14.96700000     31.52600000     -3.25300000   
+    26       H(HETATM   26  H8  UNL A   1)  -13.67600000     30.84500000     -2.17700000   
+    27       H(HETATM   27  H9  UNL A   1)  -13.24700000     33.14900000     -1.25300000   
+    28       H(HETATM   28  H10 UNL A   1)  -13.02800000     33.10000000     -3.05100000   
+    29       H(HETATM   29  H11 UNL A   1)  -14.31900000     35.14100000     -2.29200000   
+    30       H(HETATM   30  H12 UNL A   1)  -15.29600000     34.07100000     -3.37600000   
+    31       H(HETATM   31  H13 UNL A   1)  -15.45400000     34.27100000     -0.29500000   
+    32       H(HETATM   32  H14 UNL A   1)  -16.69800000     34.79300000     -1.50100000   
+    33       H(HETATM   33  H15 UNL A   1)  -17.14800000     32.49500000     -2.17700000   
+    34       H(HETATM   34  H16 UNL A   1)  -17.22200000     32.60300000     -0.37600000   
+
+                             CARTESIAN COORDINATES
+
+   1    C      -17.425000000    27.499000000    -1.361000000
+   2    C      -17.954000000    26.246000000    -1.359000000
+   3    N      -17.275000000    25.167000000    -0.769000000
+   4    C      -16.002000000    25.306000000    -0.148000000
+   5    O      -15.449000000    24.327000000     0.302000000
+   6    C      -15.458000000    26.702000000    -0.132000000
+   7    C      -16.157000000    27.763000000    -0.731000000
+   8    C      -15.527000000    29.069000000    -0.654000000
+   9    N      -14.316000000    29.208000000    -0.022000000
+  10    C      -13.739000000    28.101000000     0.545000000
+  11    N      -14.252000000    26.850000000     0.507000000
+  12    N      -16.145000000    30.208000000    -1.143000000
+  13    C      -15.466000000    31.542000000    -1.129000000
+  14    C      -14.438000000    31.649000000    -2.277000000
+  15    C      -13.769000000    33.026000000    -2.227000000
+  16    C      -14.811000000    34.146000000    -2.373000000
+  17    C      -15.894000000    34.041000000    -1.290000000
+  18    C      -16.538000000    32.645000000    -1.252000000
+  19    H      -17.973000000    28.300000000    -1.861000000
+  20    H      -18.920000000    26.025000000    -1.833000000
+  21    H      -17.772000000    24.250000000    -0.720000000
+  22    H      -12.773000000    28.259000000     1.066000000
+  23    H      -16.886000000    30.087000000    -1.844000000
+  24    H      -14.951000000    31.648000000    -0.135000000
+  25    H      -14.967000000    31.526000000    -3.253000000
+  26    H      -13.676000000    30.845000000    -2.177000000
+  27    H      -13.247000000    33.149000000    -1.253000000
+  28    H      -13.028000000    33.100000000    -3.051000000
+  29    H      -14.319000000    35.141000000    -2.292000000
+  30    H      -15.296000000    34.071000000    -3.376000000
+  31    H      -15.454000000    34.271000000    -0.295000000
+  32    H      -16.698000000    34.793000000    -1.501000000
+  33    H      -17.148000000    32.495000000    -2.177000000
+  34    H      -17.222000000    32.603000000    -0.376000000
+
+
+           Empirical Formula: C13 H16 N4 O  =    34 atoms
+
+
+
+              NET ATOMIC CHARGES AND DIPOLE CONTRIBUTIONS
+
+  ATOM NO.                 TYPE                        CHARGE      No. of ELECS.   s-Pop       p-Pop       
+    1          C(HETATM    1  C1  UNL A   1)          -0.275451        4.2755     1.06295     3.21250
+    2          C(HETATM    2  C2  UNL A   1)           0.078196        3.9218     1.08682     2.83498
+    3          N(HETATM    3  N1  UNL A   1)          -0.532982        5.5330     1.56445     3.96853
+    4          C(HETATM    4  C3  UNL A   1)           0.561652        3.4383     1.08481     2.35354
+    5          O(HETATM    5  O1  UNL A   1)          -0.418476        6.4185     1.88368     4.53480
+    6          C(HETATM    6  C4  UNL A   1)           0.100544        3.8995     1.08608     2.81338
+    7          C(HETATM    7  C5  UNL A   1)          -0.161427        4.1614     1.06196     3.09947
+    8          C(HETATM    8  C6  UNL A   1)           0.413702        3.5863     1.06320     2.52310
+    9          N(HETATM    9  N2  UNL A   1)          -0.539230        5.5392     1.76420     3.77503
+   10          C(HETATM   10  C7  UNL A   1)           0.260548        3.7395     1.12026     2.61919
+   11          N(HETATM   11  N3  UNL A   1)          -0.422259        5.4223     1.75931     3.66294
+   12          N(HETATM   12  N4  UNL A   1)          -0.529808        5.5298     1.57090     3.95891
+   13          C(HETATM   13  C8  UNL A   1)           0.111100        3.8889     1.07979     2.80911
+   14          C(HETATM   14  C9  UNL A   1)          -0.308748        4.3087     1.07150     3.23725
+   15          C(HETATM   15  C10 UNL A   1)          -0.255223        4.2552     1.06083     3.19439
+   16          C(HETATM   16  C11 UNL A   1)          -0.272357        4.2724     1.06348     3.20888
+   17          C(HETATM   17  C12 UNL A   1)          -0.260292        4.2603     1.06313     3.19716
+   18          C(HETATM   18  C13 UNL A   1)          -0.303188        4.3032     1.06972     3.23347
+   19          H(HETATM   19  H1  UNL A   1)           0.163847        0.8362     0.83615
+   20          H(HETATM   20  H2  UNL A   1)           0.164700        0.8353     0.83530
+   21          H(HETATM   21  H3  UNL A   1)           0.330858        0.6691     0.66914
+   22          H(HETATM   22  H4  UNL A   1)           0.200782        0.7992     0.79922
+   23          H(HETATM   23  H5  UNL A   1)           0.309890        0.6901     0.69011
+   24          H(HETATM   24  H6  UNL A   1)           0.169440        0.8306     0.83056
+   25          H(HETATM   25  H7  UNL A   1)           0.139504        0.8605     0.86050
+   26          H(HETATM   26  H8  UNL A   1)           0.160703        0.8393     0.83930
+   27          H(HETATM   27  H9  UNL A   1)           0.144581        0.8554     0.85542
+   28          H(HETATM   28  H10 UNL A   1)           0.136246        0.8638     0.86375
+   29          H(HETATM   29  H11 UNL A   1)           0.134114        0.8659     0.86589
+   30          H(HETATM   30  H12 UNL A   1)           0.136185        0.8638     0.86382
+   31          H(HETATM   31  H13 UNL A   1)           0.141017        0.8590     0.85898
+   32          H(HETATM   32  H14 UNL A   1)           0.134456        0.8655     0.86554
+   33          H(HETATM   33  H15 UNL A   1)           0.138630        0.8614     0.86137
+   34          H(HETATM   34  H16 UNL A   1)           0.148746        0.8513     0.85125
+
+          NET CHARGE ON RESIDUES
+
+      Residue         Charge  Anion or
+                              Cation?
+      UNL A   1       +0.000
+ 
+
+
+ DIPOLE           X         Y         Z       TOTAL
+ POINT-CHG.    -3.617     4.723    -3.064     6.692
+ HYBRID        -1.225    -0.666    -0.779     1.597
+ SUM           -4.842     4.057    -3.844     7.395
+
+
+          ATOMIC ORBITAL ELECTRON POPULATIONS
+
+                   Atom                  s        px        py        pz   
+    1  C(HETATM    1  C1  UNL A   1)   1.06295   1.03564   1.04508   1.13178
+    2  C(HETATM    2  C2  UNL A   1)   1.08682   0.99663   0.89218   0.94618
+    3  N(HETATM    3  N1  UNL A   1)   1.56445   1.24939   1.19477   1.52438
+    4  C(HETATM    4  C3  UNL A   1)   1.08481   0.75032   0.86392   0.73931
+    5  O(HETATM    5  O1  UNL A   1)   1.88368   1.62859   1.43189   1.47432
+    6  C(HETATM    6  C4  UNL A   1)   1.08608   0.90808   0.97214   0.93316
+    7  C(HETATM    7  C5  UNL A   1)   1.06196   1.02022   0.98362   1.09563
+    8  C(HETATM    8  C6  UNL A   1)   1.06320   0.83891   0.84005   0.84414
+    9  N(HETATM    9  N2  UNL A   1)   1.76420   1.16250   1.36681   1.24572
+   10  C(HETATM   10  C7  UNL A   1)   1.12026   0.97688   0.78076   0.86155
+   11  N(HETATM   11  N3  UNL A   1)   1.75931   1.15483   1.27146   1.23665
+   12  N(HETATM   12  N4  UNL A   1)   1.57090   1.33686   1.12321   1.49883
+   13  C(HETATM   13  C8  UNL A   1)   1.07979   0.95339   0.77280   1.08292
+   14  C(HETATM   14  C9  UNL A   1)   1.07150   1.08876   1.06488   1.08360
+   15  C(HETATM   15  C10 UNL A   1)   1.06083   1.05800   0.98130   1.15509
+   16  C(HETATM   16  C11 UNL A   1)   1.06348   1.04128   1.08005   1.08754
+   17  C(HETATM   17  C12 UNL A   1)   1.06313   1.07090   1.02917   1.09709
+   18  C(HETATM   18  C13 UNL A   1)   1.06972   1.06824   1.00531   1.15992
+   19  H(HETATM   19  H1  UNL A   1)   0.83615
+   20  H(HETATM   20  H2  UNL A   1)   0.83530
+   21  H(HETATM   21  H3  UNL A   1)   0.66914
+   22  H(HETATM   22  H4  UNL A   1)   0.79922
+   23  H(HETATM   23  H5  UNL A   1)   0.69011
+   24  H(HETATM   24  H6  UNL A   1)   0.83056
+   25  H(HETATM   25  H7  UNL A   1)   0.86050
+   26  H(HETATM   26  H8  UNL A   1)   0.83930
+   27  H(HETATM   27  H9  UNL A   1)   0.85542
+   28  H(HETATM   28  H10 UNL A   1)   0.86375
+   29  H(HETATM   29  H11 UNL A   1)   0.86589
+   30  H(HETATM   30  H12 UNL A   1)   0.86382
+   31  H(HETATM   31  H13 UNL A   1)   0.85898
+   32  H(HETATM   32  H14 UNL A   1)   0.86554
+   33  H(HETATM   33  H15 UNL A   1)   0.86137
+   34  H(HETATM   34  H16 UNL A   1)   0.85125
+ *******************************************************************************
+ **                                                                           **
+ **                              MOPAC v22.1.1                                **
+ **                                                                           **
+ *******************************************************************************
+ **          Digital Object Identifier (DOI): 10.5281/zenodo.6511958          **
+ **    Visit the DOI location for information on how to cite this program.    **
+ *******************************************************************************
+
+                              PM7 CALCULATION RESULTS
+
+ *******************************************************************************
+ *  CALCULATION DONE:                                Tue Aug 13 16:41:06 2024  *
+ *  T=         - A TIME OF 172800.0 SECONDS REQUESTED
+ *  DUMP=N     - RESTART FILE WRITTEN EVERY 7200.0 SECONDS REQUESTED
+
+          UNRECOGNIZED KEY-WORDS: (1 2)
+
+          IF THESE ARE DEBUG KEYWORDS, ADD THE KEYWORD "DEBUG".
+ *
+ *  Errors detected in keywords.  Job stopped here to avoid wasting time.
+ *
+ *******************************************************************************
+
+ ******************************************************************************
+ *                                                                            *
+ *     Error and normal termination messages reported in this calculation     *
+ *                                                                            *
+ * UNRECOGNIZED KEY-WORDS: (1 2)                                              *
+ * IF THESE ARE DEBUG KEYWORDS, ADD THE KEYWORD "DEBUG".                      *
+ * JOB ENDED NORMALLY                                                         *
+ *                                                                            *
+ ******************************************************************************
+
+
+
+ TOTAL JOB TIME:             0.06 SECONDS
+
+ == MOPAC DONE ==

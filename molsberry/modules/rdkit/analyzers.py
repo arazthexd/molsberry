@@ -10,7 +10,7 @@ from ...core.data import (
     MoleculeData, Data, BatchedData, LigandData, UnspecifiedData, 
     Representation, UnspecifiedRep, ProteinData, PDBPathRep
 )
-from ...core.templates import SimpleBlock, PLInteractionJob
+from ...core.templates import SimpleBlock, PLInteractionJob, EnergyJob
 
 from .representations import RDKitMolRep, RDKitSmallMolRep
 from .interface import RDKitInterface
@@ -22,7 +22,7 @@ class RDKitAnalyzerBlock(SimpleBlock, ABC):
     batch_groups = []
 
     @abstractmethod
-    def analyze(self, rdmol: Chem.Mol) -> Dict[str, Any]:
+    def analyze(self, rdmol: Chem.Mol, *args) -> Dict[str, Any]:
         pass
 
     def operate(self, input_dict: Dict[str, Representation]) \
@@ -42,16 +42,20 @@ class RDKitMWCalculator(RDKitInterface, RDKitAnalyzerBlock):
     def analyze(self, rdmol: Chem.Mol) -> Dict[str, float]:
         return {"molwt": rdMolDescriptors.CalcExactMolWt(rdmol)}
     
-class RDKitMMFFEnergyCalculator(RDKitInterface, RDKitAnalyzerBlock):
+class RDKitMMFFEnergyCalculator(RDKitInterface, EnergyJob,
+                                RDKitAnalyzerBlock):
     name = "rdmmffenergycalc"
     display_name = "RDKit MMFF Energy Calculator"
-    outputs = [
-        ("energy", None, None, False) # TODO: Add numeric data types
-    ]
 
-    def calc_energy(self, rdmol:Chem.Mol) -> float:
+    def __init__(self, debug: bool = False, save_output: bool = False) -> None:
+        RDKitAnalyzerBlock.__init__(self, 
+                                    debug=debug, save_output=save_output)
+        EnergyJob.__init__(self, self.calc_energy)
+
+    @staticmethod
+    def calc_energy(rdmol:Chem.Mol) -> float:
         assert "H" in Chem.MolToSmiles(rdmol)
-        assert self.is_mol_3d(rdmol)
+        assert RDKitInterface.is_mol_3d(rdmol)
         prop = rdForceFieldHelpers.MMFFGetMoleculeProperties(rdmol)
         ff = rdForceFieldHelpers.MMFFGetMoleculeForceField(rdmol, prop)
         ff: rdForceField.ForceField
@@ -74,8 +78,11 @@ class RDKitPLInteractionCalculator(RDKitInterface, PLInteractionJob,
         energy_fn = self.calculator.calc_energy
         PLInteractionJob.__init__(self, energy_fn)
 
-    def combine_pl(self, ligand, protein):
-        return Chem.CombineMols(ligand, protein)
+    def combine_mols(self, *mols):
+        merge = mols[0]
+        for mol in mols[1:]:
+            merge = Chem.CombineMols(merge, mol)
+        return merge
     
     def analyze(self, rdmol: Chem.Mol, rdprot: Chem.Mol) -> Dict[str, float]:
         interaction_dict = self.calc_interaction(rdmol, rdprot)

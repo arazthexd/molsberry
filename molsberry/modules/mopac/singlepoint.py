@@ -106,7 +106,7 @@ class MOPACPLInteractionCalculator(PLInteractionJob,
         energy_fn = self.calculator.calc_energy
         PLInteractionJob.__init__(self, energy_fn=energy_fn)
 
-    def combine_pl(self, ligand: MOPACInputMolRep, protein: MOPACInputMolRep):
+    def combine_mols(self, ligand: MOPACInputMolRep, protein: MOPACInputMolRep):
         return [ligand, protein]
     
     def run_spc(self, reps: List[MOPACInputMolRep]) -> Dict[str, float]:

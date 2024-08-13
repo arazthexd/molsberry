@@ -65,3 +65,13 @@ class RDKitInterface:
             deg = rdMolTransforms.GetDihedralDeg(mol.GetConformer(conf_ref), *dih)
             rdMolTransforms.SetDihedralDeg(mol.GetConformer(conf_id), *dih, deg)
         return rdMolAlign.AlignMolConformers(mol)
+    
+    def combine_mols(self, *mols):
+        merge = mols[0]
+        for mol in mols[1:]:
+            merge = Chem.CombineMols(merge, mol)
+        return merge
+    
+    def separate_mols(self, merged):
+        mols = Chem.GetMolFrags(merged, asMols=True)
+        return mols
