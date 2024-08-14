@@ -3,6 +3,8 @@ from typing import List, Dict, Any, Tuple, Type, Iterable, Optional
 from tqdm import tqdm
 from itertools import product
 
+from mpire import WorkerPool
+
 from ..pipeline import PipelineBlock
 from ..data import (
     BatchOperator,
@@ -136,7 +138,8 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         final_output.update(self.context_output)
         return final_output
 
-    def apply_on_batch(self, batch_input: Dict[str, Data]):
+    def apply_on_batch(self, batch_input: Dict[str, Data], 
+                       parallel: bool = True):
         
         # Make sure all batch inputs are batches. if not, make them.
         batch_input = {k: v if isinstance(v, BatchedData) else BatchedData([v])
@@ -171,33 +174,18 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         batch_output: Dict[str, List[Data]] = {
             k: list() for k in self.output_batch_keys}
 
-        # Iterate over `mixed_iter` and create a potential input in each iter.
-        for pot_input_members in mixed_iter:
-            pot_input_members: Tuple[Dict[str, Data | BatchedData]]
-            pot_input: Dict[str, Data | BatchedData] = dict()
-            for member in pot_input_members:
-                pot_input.update(member)
-            
-            if self.debug: print(f"pot_input: {pot_input}")
-
-            # When the potential input is created, check if it meets criteria
-            # to be an input for `operate` method.
-            meets_crit: bool = self.meets_criteria(pot_input)
-
-            # If it does, unwrap the input into representations, run `operate`
-            # and wrap the result from representations into data.
-            if meets_crit:
-                unwrapped_input = self.unwrap_input(pot_input)
-                result_dict: Dict[str, Representation] = \
-                    self.operate(unwrapped_input)
-                result_dict: Dict[str, Data] = self.wrap_output(result_dict)
-
-            # If not, repeat the process once again on the input until we reach
-            # a potential input that meets the criteria.
-            else:
-                result_dict: Dict[str, Data] = self.apply_on_batch(pot_input)
-
-            # Update batch output.
+        # If parallel is on, use mpire for multiprocessing, else just do normal
+        if parallel: # TODO: Customize multi processing
+            with WorkerPool(n_jobs=2) as pool:
+                result_dicts = pool.map(self.potinpmembers_to_result, 
+                                        list(zip(mixed_iter, )))
+            print(result_dicts)
+        else:
+            result_dicts = [self.potinpmembers_to_result(pim) 
+                            for pim in mixed_iter]
+        
+        # Iterate over `result_dicts` + check + update batch_output
+        for result_dict in result_dicts:
             assert set(result_dict.keys()) == set(batch_output.keys())
             [batch_output[k].append(v) for k, v in result_dict.items()]
         
@@ -205,6 +193,38 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         batch_output = {k: BatchedData(vl) 
                         for k, vl in batch_output.items()}
         return batch_output
+    
+    def potinpmembers_to_result(
+        self, 
+        potinpmembers: Tuple[Dict[str, Data | BatchedData]]) \
+            -> Dict[str, Data]:
+        
+        # Create a potential input
+        pot_input: Dict[str, Data | BatchedData] = dict()
+        for member in potinpmembers:
+            pot_input.update(member)
+        
+        if self.debug: print(f"pot_input: {pot_input}")
+
+        # When the potential input is created, check if it meets criteria
+        # to be an input for `operate` method.
+        meets_crit: bool = self.meets_criteria(pot_input)
+
+        # If it does, unwrap the input into representations, run `operate`
+        # and wrap the result from representations into data.
+        if meets_crit:
+            unwrapped_input = self.unwrap_input(pot_input)
+            result_dict: Dict[str, Representation] = \
+                self.operate(unwrapped_input)
+            result_dict: Dict[str, Data] = self.wrap_output(result_dict)
+
+        # If not, repeat the process once again on the input until we reach
+        # a potential input that meets the criteria.
+        else:
+            result_dict: Dict[str, Data] = self.apply_on_batch(pot_input,
+                                                               parallel=False)
+
+        return result_dict
 
     def unwrap_input(self, 
                      input_dict: Dict[str, Data | BatchedData]) -> \
