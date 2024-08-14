@@ -1,6 +1,7 @@
 # Introduction
 NOTE: This repository is a work in progress and it's far from being usable. At the moment, it's a mini project that hopefully will turn into something useful for our team and anyone else who could benefit from it.
 Any feedbacks, collaborations and contributions are absolutely welcome!
+:D
 
 **Mo**dular **L**igand and **S**tructure-**b**ased Drug Discov**er(r)y** Framework in Python
 
