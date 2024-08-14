@@ -60,7 +60,7 @@ class MOPACMozymeConfig(MOPACConfig):
             [" ".join(
                 [str(pi_pair[0]+num_current_atoms), 
                  str(pi_pair[1]+num_current_atoms)]
-            ) for pi_pair in input_rep.setpi])
+            ) for pi_pair in input_rep.setpi[:40]]) # LIMITATION
         self.neg_cvb.extend([
             (pair[0]+num_current_atoms, pair[1]+num_current_atoms) for pair
             in input_rep.neg_cvb

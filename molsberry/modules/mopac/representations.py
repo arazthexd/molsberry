@@ -4,7 +4,7 @@ from typing import Any, List, Tuple
 import numpy as np
 from rdkit import Chem
 
-from ...core import Representation, SMILESRep, PDBPathRep
+from ...core import Representation, SMILESRep, PDBPathRep, SDFPathRep
 
 from ...modules.rdkit.representations import RDKitMolRep
 
@@ -56,6 +56,11 @@ class MOPACInputMolRep(Representation):
     @classmethod
     def from_PDBPathRep(cls, pdb_rep: PDBPathRep):
         rdkit_rep = RDKitMolRep.from_PDBPathRep(pdb_rep)
+        return cls.from_RDKitMolRep(rdkit_rep)
+    
+    @classmethod
+    def from_SDFPathRep(cls, sdf_rep: SDFPathRep):
+        rdkit_rep = RDKitMolRep.from_SDFPathRep(sdf_rep)
         return cls.from_RDKitMolRep(rdkit_rep)
 
     @staticmethod

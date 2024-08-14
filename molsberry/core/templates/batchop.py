@@ -200,7 +200,7 @@ class BatchOperatorBlock(PipelineBlock, ABC):
             self.parallel = True
             if self.debug: print(pool.get_insights())
         else:
-            result_dicts = [self.potinpmembers_to_result(pim) 
+            result_dicts = [self.potinpmembers_to_result(self, pim) 
                             for pim in mixed_iter]
         
         # Iterate over `result_dicts` + check + update batch_output

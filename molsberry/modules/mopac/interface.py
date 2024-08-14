@@ -1,6 +1,6 @@
 from typing import List
 
-import os
+import os, pathlib
 import glob
 import subprocess
 from copy import deepcopy
@@ -48,7 +48,7 @@ class MOPACInterface:
     @staticmethod
     def write_and_run_mopac(path: str, mopac_config: MOPACConfig, 
                             debug: bool = False):
-        cur_dir = os.curdir
+        cur_dir = pathlib.Path(os.curdir).absolute()
         with open(path, "w") as f:
             f.write(mopac_config.get_config_str())
         os.chdir(os.path.dirname(path))

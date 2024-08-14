@@ -110,6 +110,7 @@ class MOPACPLInteractionCalculator(PLInteractionJob,
     
     def run_spc(self, reps: List[MOPACInputMolRep]) -> Dict[str, float]:
         assert len(reps) == 2
+        self.calculator._parent = self._parent
         interaction_dict = self.calc_interaction(reps[0], reps[1])
         return interaction_dict
 

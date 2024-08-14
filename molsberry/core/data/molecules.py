@@ -41,6 +41,19 @@ class SMILESRep(SmallMolRep):
         with open(rep_path, "w") as f:
             f.writelines([rep.content for rep in reps])
 
+class SDFPathRep(SmallMolRep, Molecule3DRep):
+    rep_name = "sdf_path"
+    def __init__(self, path: str):
+        path = str(pathlib.Path(path).absolute())
+        super().__init__(content=path)
+    
+    def save_rep(self, exless_filename: str):
+        rep_path = exless_filename + ".sdf"
+        shutil.copy(self.content, rep_path)
+    
+    def update_coordinates(self, coords: np.ndarray):
+        raise NotImplementedError()
+
 class PDBPathRep(SmallMolRep, MacroMolRep, Molecule3DRep):
     rep_name = "pdb_path"
     def __init__(self, path: str):

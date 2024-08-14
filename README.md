@@ -9,6 +9,7 @@ Any feedbacks, collaborations and contributions are absolutely welcome!
 ## Core
 - [ ] Create a way of generating list of used project citations (Not Urgent)
 - [x] Add parallel computing
+- [ ] Add generic blocks such as mathematics, etc.
 
 ## New Modules
 - [ ] OpenMM (Low Priority)

@@ -8,7 +8,7 @@ import numpy as np
 
 from molsberry.core.data import Representation
 
-from ...core import SimpleBlock, OptimizeJob
+from ...core import SimpleBlock, PLJob
 from ...core import LigandData, ProteinData, PDBPathRep
 from ...modules.rdkit import RDKitMolRep
 from ...global_conf import DATA_UNIQUE_CODE_LEN
@@ -25,6 +25,7 @@ class MOPACOptimizer(MOPACInterface, SimpleBlock):
     def __init__(self, config: MOPACConfig = MOPACConfig(),
                  opt_algorithm: str | None = None) -> None:
         config = deepcopy(config)
+        config.keywords.append("THREADS=1")
         config.keywords = [key for key in config.keywords
                            if key not in MOPAC_SINGLEPOINT_KEYWORDS]
         n_opt_keys = len(set(

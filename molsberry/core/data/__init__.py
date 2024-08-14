@@ -9,7 +9,7 @@ from .molecules import (
     MoleculeRep, MoleculeData,
     Molecule3DRep,
     MacroMolRep, ProteinRep, PDBPathRep, ProteinData,
-    SmallMolRep, SMILESRep, LigandData
+    SmallMolRep, SMILESRep, SDFPathRep, LigandData
 )
 
 # Others...

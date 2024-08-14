@@ -6,7 +6,7 @@ from numpy import ndarray
 from molsberry.core.data.abstract import Representation
 
 from ...core import Molecule3DRep, SmallMolRep, ProteinRep
-from ...core import SMILESRep, PDBPathRep
+from ...core import SMILESRep, PDBPathRep, SDFPathRep
 from .interface import RDKitInterface
 
 from rdkit import Chem
@@ -40,6 +40,22 @@ class RDKitMolRep(Molecule3DRep):
             if atom.GetPDBResidueInfo().GetIsHeteroAtom() == False:
                 atom.SetFormalCharge(-1)
         return cls(mol=mol)
+    
+    @classmethod
+    def from_SDFPathRep(cls, sdf_rep: SDFPathRep):
+        assert isinstance(sdf_rep, SDFPathRep)
+        sdf_path = sdf_rep.content
+        mol = next(Chem.SDMolSupplier(sdf_path, removeHs=False, sanitize=True))
+
+        # Fix COO groups not being ionized when read from pdb in rdkit
+        # THIS IS COPIED FROM ABOVE...
+        query_COO = Chem.MolFromSmarts("[$([O]-C(=O)-C)]")
+        for atom, in mol.GetSubstructMatches(query_COO):
+            atom: Chem.Atom = mol.GetAtomWithIdx(atom)
+            if atom.GetPDBResidueInfo().GetIsHeteroAtom() == False:
+                atom.SetFormalCharge(-1)
+        return cls(mol=mol)
+
     
     @classmethod
     def from_RDKitMolRep(cls, rdmol_rep: RDKitMolRep):
