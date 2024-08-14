@@ -5,12 +5,11 @@ import glob
 import subprocess
 from copy import deepcopy
 
-from ...utils.iotools import generate_random_str
+from ...core import generate_random_str
+from ...global_conf import DATA_UNIQUE_CODE_LEN
+
 from .representations import MOPACInputMolRep
 from .configs import MOPACConfig
-
-from ...global_conf import RANDOM_JOB_KEY_LEN
-from .shared import MOPAC_OPTIMIZE_KEYWORDS
 
 class MOPACInterface:
     def __init__(self, config: MOPACConfig = MOPACConfig()) -> None:
@@ -31,7 +30,7 @@ class MOPACInterface:
     def run_job(config: MOPACConfig, base_dir: str, debug: bool):
         path = MOPACInterface.generate_random_input_file(
             base_dir=base_dir, 
-            key_length=RANDOM_JOB_KEY_LEN
+            key_length=DATA_UNIQUE_CODE_LEN
         )
 
         if debug:
@@ -46,7 +45,6 @@ class MOPACInterface:
         
         return out_path, arc_path
 
-    
     @staticmethod
     def write_and_run_mopac(path: str, mopac_config: MOPACConfig, 
                             debug: bool = False):

@@ -239,28 +239,6 @@ class PipelineBlock(ABC):
         for block in self._next_blocks():
             block._cyclic_check_pass(prev_blocks)
 
-    # def check_input(self, input_dict: Dict[str, Data]):
-    #     """Checks validity of input dictionary (input to `execute`).
-
-    #     Args:
-    #         input_dict (Dict[str, Any]): input dict with needed input keys.
-    #     """
-
-    #     assert all(k in input_dict.keys() for k in 
-    #                 self.required_input_keys + self.optional_input_keys)
-    #     assert all(isinstance(v, Data) for v in input_dict.values())
-    #     return
-    
-    # def check_output(self, output_dict: Dict[str, Data]):
-    #     """Checks validity of output dictionary (output from `execute`).
-
-    #     Args:
-    #         output_dict (Dict[str, Any]): output dict with needed output keys.
-    #     """
-    #     assert set(output_dict.keys()) == set(self.output_keys)
-    #     assert all(isinstance(v, Data) for v in output_dict.values())
-    #     return
-
 class InputBlock(PipelineBlock):
     name = "Input Block"
     force_run: bool = False

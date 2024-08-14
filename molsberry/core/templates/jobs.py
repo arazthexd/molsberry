@@ -2,9 +2,9 @@ from typing import Optional, Callable, Tuple, Any, Type, List, Dict
 from abc import ABC, abstractmethod
 
 from ..data import ProteinData, LigandData, Representation, MoleculeData
-from .simples import SimpleBlock
+from .batchop import BatchOperatorBlock
 
-class PLJob:
+class PLJob(ABC):
     @property
     @abstractmethod
     def lig_rep(self) -> Type[Representation]:
@@ -25,10 +25,6 @@ class PLJob:
     @property
     def batch_groups(self) -> List[Tuple[str]]:
         return [("ligands", "proteins")]
-    
-    @abstractmethod
-    def combine_mols(self, ligand, protein):
-        pass
 
 class EnergyJob(ABC):
     def __init__(self, energy_fn: Optional[Callable]) -> None:

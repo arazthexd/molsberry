@@ -8,9 +8,8 @@ from copy import deepcopy
 
 from molsberry.core.data import Representation
 
-from ...core.data import LigandData, ProteinData, MoleculeData
-from ...core.templates import SimpleBlock, PLInteractionJob
-from ...global_conf import RANDOM_JOB_KEY_LEN
+from ...core import LigandData, ProteinData, MoleculeData
+from ...core import SimpleBlock, PLInteractionJob
 
 from .representations import MOPACInputMolRep
 from .configs import MOPACConfig, MOPACMozymeConfig

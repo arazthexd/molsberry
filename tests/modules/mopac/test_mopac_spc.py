@@ -4,8 +4,8 @@ import os, pathlib, shutil
 from rdkit import Chem # TODO: Should we delete this?
 from molsberry.modules.rdkit import RDKitMolRep
 
-from molsberry.core.data import Data, ProteinData, LigandData, BatchedData
-from molsberry.core.data.representations import SMILESRep, PDBPathRep
+from molsberry.core import Data, ProteinData, LigandData, BatchedData
+from molsberry.core import SMILESRep, PDBPathRep
 from molsberry.core.pipeline import Pipeline, OutputBlock, InputBlock
 
 from molsberry.modules.mopac.singlepoint import (
