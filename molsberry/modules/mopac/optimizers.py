@@ -21,7 +21,7 @@ from .shared import (
     MOPAC_SINGLEPOINT_KEYWORDS
 )
 
-class MOPACOptimizer(MOPACInterface):
+class MOPACOptimizer(MOPACInterface, SimpleBlock):
     def __init__(self, config: MOPACConfig = MOPACConfig(),
                  opt_algorithm: str | None = None) -> None:
         config = deepcopy(config)
@@ -47,7 +47,8 @@ class MOPACOptimizer(MOPACInterface):
                 debug: bool = False) -> Dict[str, Any]:
         self.reset_config()
         self.update_config(mopac_rep=mopac_rep)
-        out_path, arc_path = self.run_job(self.config, debug)
+        out_path, arc_path = self.run_job(self.config, debug=debug,
+                                          base_dir=self.base_dir)
         with open(out_path, "r") as f:
             out_str = f.read()
 
@@ -80,6 +81,7 @@ class MOPACLigandOptimizer(MOPACOptimizer, SimpleBlock):
         ("e_init", None, None, False),
         ("e_final", None, None, False)
     ]
+    batch_groups = []
 
     def __init__(self, config: MOPACConfig = MOPACConfig(), 
                  opt_algorithm: str | None = None,
