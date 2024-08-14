@@ -6,9 +6,12 @@ from copy import deepcopy
 
 import numpy as np
 
-from ...core.templates import SimpleBlock
-from ...core.data import LigandData, ProteinData
-from ...global_conf import RANDOM_JOB_KEY_LEN
+from molsberry.core.data import Representation
+
+from ...core import SimpleBlock, OptimizeJob
+from ...core import LigandData, ProteinData, PDBPathRep
+from ...modules.rdkit import RDKitMolRep
+from ...global_conf import DATA_UNIQUE_CODE_LEN
 
 from .representations import MOPACInputMolRep
 from .configs import MOPACConfig, MOPACMozymeConfig
@@ -65,33 +68,37 @@ class MOPACOptimizer(MOPACInterface):
             "coordinates": coordinates
         }
 
-# class MOPACLigandOptimizer(MOPACOptimizer, Contexted, LigandConverterBlock):
-#     name = "MOPAC Ligand Optimizer"
-#     output_keys = LigandConverterBlock.output_keys + \
-#         ["pre_energy", "post_energy"]
-#     output_types = [LigandConverterBlock.single_data_type] + \
-#         [float, str]
-#     output_context_keys = ["pre_energy", "post_energy"]
-#     output_context_types = [float, float]
+class MOPACLigandOptimizer(MOPACOptimizer, SimpleBlock):
+    name = "mopacopt_lig"
+    display_name = "MOPAC Ligand Optimizer"
+    inputs = [
+        ("ligands", LigandData, [MOPACInputMolRep, RDKitMolRep], False)
+    ]
+    outputs = [
+        ("ligands", LigandData, [MOPACInputMolRep, 
+                                 RDKitMolRep, PDBPathRep], False),
+        ("e_init", None, None, False),
+        ("e_final", None, None, False)
+    ]
 
-#     def __init__(self, config: MOPACConfig = MOPACConfig(), 
-#                  opt_algorithm: str | None = None,
-#                  debug: bool = False, save_output: bool = False) -> None:
-#         LigandConverterBlock.__init__(self, 
-#                                      debug=debug, save_output=save_output)
-#         MOPACOptimizer.__init__(self, config=config, 
-#                                 opt_algorithm=opt_algorithm)
+    def __init__(self, config: MOPACConfig = MOPACConfig(), 
+                 opt_algorithm: str | None = None,
+                 debug: bool = False, save_output: bool = False) -> None:
+        SimpleBlock.__init__(self, debug=debug, save_output=save_output)
+        MOPACOptimizer.__init__(self, config=config, 
+                                opt_algorithm=opt_algorithm)
     
-#     def convert(self, ligand: Ligand) -> Ligand:
-#         mopac_rep = ligand.get_representation(MOPACInputMolRep)
-#         output = self.run_opt(mopac_rep)
-#         newlig = ligand.return_with_new_coords(output["coordinates"])
-#         self.output_context = {
-#             "pre_energy": output["pre_energy"],
-#             "post_energy": output["post_energy"]
-#         }
-#         return newlig
-#         #     "ligands": newlig, # ligands
-#         #     "pre_energy": output["pre_energy"],
-#         #     "post_energy": output["post_energy"]
-#         # } # TODO: Make it have output context
+    def operate(self, input_dict: Dict[str, Representation]) \
+        -> Dict[str, Representation]:
+        mopacrep, rdrep = input_dict[self.input_keys[0]]
+        mopacrep: MOPACInputMolRep
+        rdrep: RDKitMolRep
+        output = self.run_opt(mopacrep)
+        mopacrep.update_coordinates(output["coordinates"])
+        rdrep.update_coordinates(output["coordinates"])
+        pdbrep = PDBPathRep(output["out_path"][:-4]+".pdb")
+        return {
+            "ligands": [mopacrep, rdrep, pdbrep],
+            "e_init": output["pre_energy"],
+            "e_final": output["post_energy"]
+        }
