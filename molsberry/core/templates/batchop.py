@@ -1,7 +1,8 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Tuple, Type, Iterable, Optional
 from tqdm import tqdm
-from itertools import product
+from itertools import product, repeat
 
 from mpire import WorkerPool
 
@@ -11,6 +12,31 @@ from ..data import (
     BatchedData, Data, UnspecifiedData,
     BatchedRep, Representation, UnspecifiedRep
 )
+
+# def single_process(potinpmembers, crit_fn, unwrap_fn, wrap_fn, op_fn):
+#     # Create a potential input
+#     pot_input: Dict[str, Data | BatchedData] = dict()
+#     for member in potinpmembers:
+#         pot_input.update(member)
+
+#     # When the potential input is created, check if it meets criteria
+#     # to be an input for `operate` method.
+#     meets_crit: bool = crit_fn(pot_input)
+
+#     # If it does, unwrap the input into representations, run `operate`
+#     # and wrap the result from representations into data.
+#     if meets_crit:
+#         unwrapped_input = unwrap_fn(pot_input)
+#         result_dict: Dict[str, Representation] = \
+#             op_fn(unwrapped_input)
+#         result_dict: Dict[str, Data] = wrap_fn(result_dict)
+
+#     # If not, repeat the process once again on the input until we reach
+#     # a potential input that meets the criteria.
+#     else:
+#         None
+
+#     return result_dict
 
 class BatchOperatorBlock(PipelineBlock, ABC):
 
@@ -101,7 +127,7 @@ class BatchOperatorBlock(PipelineBlock, ABC):
                             if k in self.input_batch_keys}
         self.context_input = {k: v for k, v in full_input.items() 
                               if k in self.input_context_keys}
-        
+
     def execute(self, *args: Tuple[Data], 
                 **kwargs: Dict[str, Data]) -> Dict[str, Data | BatchedData]:
 
@@ -176,16 +202,22 @@ class BatchOperatorBlock(PipelineBlock, ABC):
 
         # If parallel is on, use mpire for multiprocessing, else just do normal
         if parallel: # TODO: Customize multi processing
-            with WorkerPool(n_jobs=2) as pool:
+            with WorkerPool(n_jobs=4, shared_objects=self, enable_insights=True, use_dill=True) as pool:
                 result_dicts = pool.map(self.potinpmembers_to_result, 
-                                        list(zip(mixed_iter, )))
-            print(result_dicts)
+                                        list(zip(mixed_iter,)))
+            if self.debug: print(pool.get_insights())
         else:
             result_dicts = [self.potinpmembers_to_result(pim) 
                             for pim in mixed_iter]
         
         # Iterate over `result_dicts` + check + update batch_output
-        for result_dict in result_dicts:
+        for result_dict, potinpmembers in zip(result_dicts, product(*indep_groups)):
+            if result_dict is None:
+                # Create a potential input
+                pot_input: Dict[str, Data | BatchedData] = dict()
+                for member in potinpmembers:
+                    pot_input.update(member)
+                result_dict = self.apply_on_batch(pot_input, parallel=True)
             assert set(result_dict.keys()) == set(batch_output.keys())
             [batch_output[k].append(v) for k, v in result_dict.items()]
         
@@ -194,8 +226,9 @@ class BatchOperatorBlock(PipelineBlock, ABC):
                         for k, vl in batch_output.items()}
         return batch_output
     
+    @staticmethod
     def potinpmembers_to_result(
-        self, 
+        block: BatchOperatorBlock, 
         potinpmembers: Tuple[Dict[str, Data | BatchedData]]) \
             -> Dict[str, Data]:
         
@@ -204,25 +237,26 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         for member in potinpmembers:
             pot_input.update(member)
         
-        if self.debug: print(f"pot_input: {pot_input}")
+        if block.debug: print(f"pot_input: {pot_input}")
 
         # When the potential input is created, check if it meets criteria
         # to be an input for `operate` method.
-        meets_crit: bool = self.meets_criteria(pot_input)
+        meets_crit: bool = block.meets_criteria(pot_input)
 
         # If it does, unwrap the input into representations, run `operate`
         # and wrap the result from representations into data.
         if meets_crit:
-            unwrapped_input = self.unwrap_input(pot_input)
+            unwrapped_input = block.unwrap_input(pot_input)
             result_dict: Dict[str, Representation] = \
-                self.operate(unwrapped_input)
-            result_dict: Dict[str, Data] = self.wrap_output(result_dict)
+                block.operate(unwrapped_input)
+            result_dict: Dict[str, Data] = block.wrap_output(result_dict)
 
         # If not, repeat the process once again on the input until we reach
         # a potential input that meets the criteria.
         else:
-            result_dict: Dict[str, Data] = self.apply_on_batch(pot_input,
-                                                               parallel=False)
+            # result_dict = None
+            result_dict: Dict[str, Data] = block.apply_on_batch(pot_input,
+                                                               parallel=True)
 
         return result_dict
 

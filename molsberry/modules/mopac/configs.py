@@ -49,6 +49,7 @@ class MOPACMozymeConfig(MOPACConfig):
         super().__init__()
         self.keywords.append("MOZYME")
         self.keywords.append("GEO-OK")
+        self.keywords.append("SETPI")
         self.desc1: str = "MOPACMozymeConfig "
         self.setpi: str = ""
         self.neg_cvb: List[Tuple[int, int]] = list()
