@@ -7,7 +7,7 @@ Any feedbacks, collaborations and contributions are absolutely welcome!
 # To-Do
 ## Core
 - [ ] Create a way of generating list of used project citations (Not Urgent)
-- [ ] Add parallel computing
+- [x] Add parallel computing
 
 ## New Modules
 - [ ] OpenMM (Low Priority)

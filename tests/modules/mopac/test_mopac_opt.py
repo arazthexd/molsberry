@@ -16,9 +16,8 @@ ONETHREAD_CONFIG = MOPACMozymeConfig()
 ONETHREAD_CONFIG.keywords.append("THREADS=1")
 FOURTHREAD_CONFIG = MOPACMozymeConfig()
 FOURTHREAD_CONFIG.keywords.append("THREADS=4")
-# @pytest.fixture(params=[MOPACConfig(), MOPACMozymeConfig(), 
-#                         ONETHREAD_CONFIG, FOURTHREAD_CONFIG])
-@pytest.fixture(params=[ONETHREAD_CONFIG, FOURTHREAD_CONFIG])
+@pytest.fixture(params=[MOPACConfig(), MOPACMozymeConfig(), 
+                        ONETHREAD_CONFIG, FOURTHREAD_CONFIG])
 def lig_opter(request):
     block = MOPACLigandOptimizer(config=request.param, opt_algorithm="LBFGS",
                                  debug=True, save_output=False)
@@ -42,7 +41,7 @@ def lig_opter(request):
 def sample_mols():
     sdf_path = os.path.join(os.path.dirname(__file__), 
                             "files", "sample_mols_mk.sdf")
-    rdmols = list(Chem.SDMolSupplier(sdf_path))[:4]
+    rdmols = list(Chem.SDMolSupplier(sdf_path))[:10]
     rdreps = [RDKitMolRep(rdmol) for rdmol in rdmols]
     return BatchedData([LigandData(rep) for rep in rdreps])
 

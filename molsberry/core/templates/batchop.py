@@ -13,32 +13,16 @@ from ..data import (
     BatchedRep, Representation, UnspecifiedRep
 )
 
-# def single_process(potinpmembers, crit_fn, unwrap_fn, wrap_fn, op_fn):
-#     # Create a potential input
-#     pot_input: Dict[str, Data | BatchedData] = dict()
-#     for member in potinpmembers:
-#         pot_input.update(member)
-
-#     # When the potential input is created, check if it meets criteria
-#     # to be an input for `operate` method.
-#     meets_crit: bool = crit_fn(pot_input)
-
-#     # If it does, unwrap the input into representations, run `operate`
-#     # and wrap the result from representations into data.
-#     if meets_crit:
-#         unwrapped_input = unwrap_fn(pot_input)
-#         result_dict: Dict[str, Representation] = \
-#             op_fn(unwrapped_input)
-#         result_dict: Dict[str, Data] = wrap_fn(result_dict)
-
-#     # If not, repeat the process once again on the input until we reach
-#     # a potential input that meets the criteria.
-#     else:
-#         None
-
-#     return result_dict
-
 class BatchOperatorBlock(PipelineBlock, ABC):
+
+    def __init__(self, debug: bool = False, save_output: bool = False,
+                 num_workers: int | None = None) -> None:
+        super().__init__(debug=debug, save_output=save_output)
+        if num_workers is None:
+            self.parallel = False
+        else:
+            self.parallel = True
+            self.n_workers = num_workers
 
     @property
     @abstractmethod
@@ -122,6 +106,13 @@ class BatchOperatorBlock(PipelineBlock, ABC):
     def meets_criteria(self, pot_input: Dict[str, Data]) -> bool:
         pass
 
+    def set_num_workers(self, num_workers: int):
+        self.parallel = True
+        self.n_workers = num_workers
+    
+    def disable_parallel(self):
+        self.parallel = False
+
     def split_input(self, full_input: Dict[str, Data]):
         self.batch_input = {k: v for k, v in full_input.items() 
                             if k in self.input_batch_keys}
@@ -164,8 +155,7 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         final_output.update(self.context_output)
         return final_output
 
-    def apply_on_batch(self, batch_input: Dict[str, Data], 
-                       parallel: bool = True):
+    def apply_on_batch(self, batch_input: Dict[str, Data]):
         
         # Make sure all batch inputs are batches. if not, make them.
         batch_input = {k: v if isinstance(v, BatchedData) else BatchedData([v])
@@ -201,10 +191,13 @@ class BatchOperatorBlock(PipelineBlock, ABC):
             k: list() for k in self.output_batch_keys}
 
         # If parallel is on, use mpire for multiprocessing, else just do normal
-        if parallel: # TODO: Customize multi processing
-            with WorkerPool(n_jobs=4, shared_objects=self, enable_insights=True, use_dill=True) as pool:
+        if self.parallel: # TODO: Customize multi processing
+            self.parallel = False
+            with WorkerPool(n_jobs=self.n_workers, shared_objects=self, 
+                            enable_insights=True, use_dill=True) as pool:
                 result_dicts = pool.map(self.potinpmembers_to_result, 
                                         list(zip(mixed_iter,)))
+            self.parallel = True
             if self.debug: print(pool.get_insights())
         else:
             result_dicts = [self.potinpmembers_to_result(pim) 
@@ -357,6 +350,3 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         if rtype is None:
             rtype = UnspecifiedRep
         return rtype
-
-
-
