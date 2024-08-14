@@ -6,26 +6,18 @@ Any feedbacks, collaborations and contributions are absolutely welcome!
 **Mo**dular **L**igand and **S**tructure-**b**ased Drug Discov**er(r)y** Framework in Python
 
 # To-Do
-## Core
-- [ ] Create a way of generating list of used project citations (Not Urgent)
-- [x] Add parallel computing
+## Short-term
 - [ ] Add generic blocks such as mathematics, etc.
-
-## New Modules
-- [ ] OpenMM (Low Priority)
-- [x] Independent MOPAC (Urgent)
-- [ ] Test + Decide on Adding ASH For QMMM
-- [ ] Check out QMMM on MOPAC
-
-## Module Updates
-- [ ] (Urgent) Add all needed nodes for MOPAC (from different core templates)
-
-## Testing
+- [ ] Add support for MM scoring / optimization. (OpenMM / Ambertools)
+- [ ] Add support for QMMM scoring / optimization. (ASH / Cuby4 / Ambertools)
 - [ ] Add testing for entire pipelines.
 
-## Docs
+
+## Long-term
+- [ ] Create a way of generating list of used project citations
 - [ ] Update installation documentation as well as usage.
-- [ ] Add example notebooks.
+- [ ] Improve parallel computing.
+- [ ] Create extensive introductory notebooks.
 
 
 # Installation & Setup
