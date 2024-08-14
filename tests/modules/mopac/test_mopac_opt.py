@@ -12,7 +12,12 @@ from molsberry.modules.mopac import MOPACLigandOptimizer
 from molsberry.modules.mopac.representations import MOPACInputMolRep
 from molsberry.modules.mopac.configs import MOPACConfig, MOPACMozymeConfig
 
-@pytest.fixture(params=[MOPACConfig(), MOPACMozymeConfig()])
+ONETHREAD_CONFIG = MOPACMozymeConfig()
+ONETHREAD_CONFIG.keywords.append("THREADS=1")
+FOURTHREAD_CONFIG = MOPACMozymeConfig()
+FOURTHREAD_CONFIG.keywords.append("THREADS=4")
+@pytest.fixture(params=[MOPACConfig(), MOPACMozymeConfig(), 
+                        ONETHREAD_CONFIG, FOURTHREAD_CONFIG])
 def lig_opter(request):
     block = MOPACLigandOptimizer(config=request.param, opt_algorithm="LBFGS",
                                  debug=True, save_output=False)
