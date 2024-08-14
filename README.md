@@ -7,6 +7,7 @@ Any feedbacks, collaborations and contributions are absolutely welcome!
 # To-Do
 ## Core
 - [ ] Create a way of generating list of used project citations (Not Urgent)
+- [ ] Add parallel computing
 
 ## New Modules
 - [ ] OpenMM (Low Priority)
@@ -24,8 +25,6 @@ Any feedbacks, collaborations and contributions are absolutely welcome!
 - [ ] Update installation documentation as well as usage.
 - [ ] Add example notebooks.
 
-
-NOTE: CUBY4 HAS LOTS OF PROBLEMS. BEWARE!
 
 # Installation & Setup
 1) Create an environment to install required and optional packages in. 
