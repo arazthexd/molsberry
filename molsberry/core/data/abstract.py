@@ -64,7 +64,14 @@ class Data(ABC):
             if hasattr(rep_type, newrep_from_rep_name):
                 newrep = getattr(rep_type, newrep_from_rep_name)(rep)
                 self._representations[rep_type.rep_name] = newrep
-                return
+                return # TODO: Ways to improve on this (more depth)
+            else: # TODO: Mix these two
+                for parent_rep in type(rep).__mro__:
+                    newrep_from_rep_name = "from_" + parent_rep.__name__
+                    if hasattr(rep_type, newrep_from_rep_name):
+                        newrep = getattr(rep_type, newrep_from_rep_name)(rep)
+                        self._representations[rep_type.rep_name] = newrep
+                        return
             
         raise NotImplementedError()
     

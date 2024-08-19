@@ -4,11 +4,13 @@ from typing import Any, List, Tuple
 import numpy as np
 from rdkit import Chem
 
-from ...core import Representation, SMILESRep, PDBPathRep, SDFPathRep
+from ...core import (
+    SMILESRep, PDBPathRep, SDFPathRep, Molecule3DRep
+)
 
 from ...modules.rdkit.representations import RDKitMolRep
 
-class MOPACInputMolRep(Representation):
+class MOPACInputMolRep(Molecule3DRep):
     rep_name = "mopac_inpmol"
 
     def __init__(self, charge: int, coordinates: str,

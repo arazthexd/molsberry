@@ -3,9 +3,7 @@ from __future__ import annotations
 from typing import List
 from numpy import ndarray
 
-from molsberry.core.data.abstract import Representation
-
-from ...core import Molecule3DRep, SmallMolRep, ProteinRep
+from ...core import Molecule3DRep, SmallMolRep, ProteinRep, Representation
 from ...core import SMILESRep, PDBPathRep, SDFPathRep
 from .interface import RDKitInterface
 
