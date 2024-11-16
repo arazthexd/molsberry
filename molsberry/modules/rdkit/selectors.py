@@ -1,8 +1,9 @@
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Literal
 from abc import ABC, abstractmethod
 
 from rdkit import Chem
-from rdkit.Chem import rdMolDescriptors
+from rdkit.Chem import rdMolDescriptors, Descriptors
+from rdkit.Chem.FilterCatalog import FilterCatalog, FilterCatalogParams
 
 from ...core import MoleculeData, BatchedData, Representation, BatchedRep
 from ...core import SimpleSelectorBlock
@@ -61,4 +62,65 @@ class RDKitMolWtSelector(RDKitInterface, RDKitSelectorBlock):
                     print(f"mol wt < {self.min_wt}: {Chem.MolToSmiles(rdmol)}")
                 continue
             selected_ligs.append(rdmol)
+        return selected_ligs
+
+class RDKitMolFlagSelector(RDKitInterface, RDKitSelectorBlock):
+    name = "rdmolflagsel"
+    display_name = "RDkit Molecule Flag Filtering"
+
+    def __init__(self, debug: bool = False, save_output: bool = False,
+                num_workers: int | None = None, 
+                filter_flag = Literal['PAINS_A', 'BRENK', 'NIH', 'ALL', 'CHEMBL', 'ZINC'] ) -> None:
+        super().__init__(debug = debug, save_output = save_output, 
+                        num_workers = num_workers)
+        self.filter_flag = filter_flag
+    
+    def select(self, rdmols: List[Chem.Mol]) -> Chem.Mol | List[Chem.Mol]:
+        params = FilterCatalogParams()
+
+        try:  
+            catalog_member = getattr(FilterCatalogParams.FilterCatalogs, self.filter_flag)    
+            params.AddCatalog(catalog_member)  
+        except AttributeError:  
+            print(f"Error: '{self.filter_flag}' is not a valid catalog in FilterCatalogParams.FilterCatalogs.") 
+        
+        catalog = FilterCatalog(params)
+        selected_ligs = []
+        for mol in rdmols:
+            flag = catalog.HasMatch(mol)    
+            if flag:
+                if self.debug:
+                    get_flag = catalog.GetMatches(mol)
+                    for entry in get_flag:
+                        print(entry.GetDescription())
+                continue
+            else:
+                selected_ligs.append(mol)
+        return selected_ligs
+
+class RDKitMolLIPINSKISelector(RDKitInterface, RDKitSelectorBlock):
+    name = 'rdmollipinskisel'
+    display_anme = 'RDKit Molecule LIPINSKI Filtering'
+
+    def __init__(self, condition_count: int = 3, debug: bool = False, save_output: bool = False,
+                num_workers: int | None = None) -> None:
+        super().__init__(debug = debug, save_output = save_output, 
+                        num_workers = num_workers)
+        
+        self.condition_count = condition_count
+
+    def select(self, rdmols: List[Chem.Mol]) -> Chem.Mol | List[Chem.Mol]:
+        selected_ligs = []
+        for mol in rdmols:    
+            MW = Descriptors.MolWt(mol)
+            HBA = Descriptors.NOCount(mol)
+            HBD = Descriptors.NHOHCount(mol)
+            LogP = Descriptors.MolLogP(mol)
+            conditions = [MW <= 500, HBA <= 10, HBD <= 5, LogP <= 5]
+            fail_ro5 = conditions.count(False) >= self.condition_count
+            if fail_ro5:
+                if self.debug:
+                    continue
+            else:
+                selected_ligs.append(mol)
         return selected_ligs
