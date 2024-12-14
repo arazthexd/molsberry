@@ -12,5 +12,8 @@ from .molecules import (
     SmallMolRep, SMILESRep, SDFPathRep, LigandData
 )
 
+# Generic
+from.generic import LocationData
+
 # Others...
 from .unspecified import UnspecifiedRep, UnspecifiedData
