@@ -53,7 +53,6 @@ class RDKitMolRep(Molecule3DRep):
             if atom.GetPDBResidueInfo().GetIsHeteroAtom() == False:
                 atom.SetFormalCharge(-1)
         return cls(mol=mol)
-
     
     @classmethod
     def from_RDKitMolRep(cls, rdmol_rep: RDKitMolRep):

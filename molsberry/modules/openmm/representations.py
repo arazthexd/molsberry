@@ -23,24 +23,21 @@ from ...modules.rdkit import RDKitMolRep
 
 from .constants import DEFAULT_FORCEFIELDS, DEFAULT_PH
 
-class OpenMMInputMolRep(Molecule3DRep):
-    rep_name = "openmm_mol"
+class OpenMMPreInputMolRep(Molecule3DRep):
+    rep_name = "openmm_pre_mol"
 
     def __init__(
-            self, 
-            topology: Topology, 
-            system: System, 
-            positions: Any, 
-            forcefield: ForceField) -> None:
-        
-        self.topology: Topology = topology
-        self.system: System = system
-        self.positions = positions # TODO: Typing...
-        self.forcefield: ForceField = forcefield
+            self,
+            topology: Topology,
+            positions: Any,
+            forcefield: ForceField | None = None) -> None:
+        self.topology = topology
+        self.positions = positions
+        self.forcefield = forcefield
 
     @classmethod
-    def from_RDKitMolRep(cls, rdkit_srep: RDKitMolRep) -> OpenMMInputMolRep:
-        rdmol = rdkit_srep.content
+    def from_RDKitMolRep(cls, rdkit_rep: RDKitMolRep) -> OpenMMPreInputMolRep:
+        rdmol = rdkit_rep.content
         rdmol = Chem.AddHs(rdmol)
         molecule = Molecule.from_rdkit(rdmol, allow_undefined_stereo=True,
                                        hydrogens_are_explicit=False)
@@ -58,12 +55,65 @@ class OpenMMInputMolRep(Molecule3DRep):
         smirnoff = SMIRNOFFTemplateGenerator(molecules=molecule)
         forcefield = ForceField(*DEFAULT_FORCEFIELDS)
         forcefield.registerTemplateGenerator(smirnoff.generator)
-        system = forcefield.createSystem(topology)
 
         return cls(topology=topology, 
-                   system=system, 
                    positions=positions, 
                    forcefield=forcefield)
+    
+    @classmethod
+    def from_PDBPathRep(cls, pdb_rep: PDBPathRep) -> OpenMMPreInputMolRep:
+        fixer = PDBFixer(pdb_rep.content)
+        fixer.removeHeterogens(keepWater=False) # TODO: Make it customizable.
+        fixer.findMissingResidues()
+        fixer.findMissingAtoms()
+        fixer.addMissingAtoms()
+        fixer.addMissingHydrogens(pH=DEFAULT_PH)
+        return cls(topology=fixer.topology, 
+                   positions=fixer.positions, 
+                   forcefield=None)
+    
+    def to_OpenMMInputMolRep(self):
+        return OpenMMInputMolRep(
+            topology=self.topology,
+            positions=self.positions,
+            forcefield=self.forcefield,
+            system=self.forcefield.createSystem(self.topology)
+        ) 
+    
+    def update_coordinates(self, coords: ndarray):
+        raise NotImplementedError()
+    
+    def save_rep(self, exless_filename: str):
+        raise NotImplementedError()
+    
+    @classmethod
+    def save_rep_batch(cls, reps: List[Representation], exless_filename: str):
+        raise NotImplementedError()
+        
+class OpenMMInputMolRep(Molecule3DRep):
+    rep_name = "openmm_mol"
+
+    def __init__(
+            self, 
+            topology: Topology, 
+            system: System, 
+            positions: Any, 
+            forcefield: ForceField) -> None:
+        
+        self.topology: Topology = topology
+        self.system: System = system
+        self.positions = positions # TODO: Typing...
+        self.forcefield: ForceField = forcefield
+
+    @classmethod
+    def from_RDKitMolRep(cls, rdkit_rep: RDKitMolRep) -> OpenMMInputMolRep:
+        pre_rep = OpenMMPreInputMolRep.from_RDKitMolRep(rdkit_rep)
+        system = pre_rep.forcefield.createSystem(pre_rep.topology)
+
+        return cls(topology=pre_rep.topology, 
+                   system=system, 
+                   positions=pre_rep.positions, 
+                   forcefield=pre_rep.forcefield)
     
     @classmethod
     def from_SDFPathRep(cls, sdf_rep: SDFPathRep) -> OpenMMInputMolRep:
@@ -72,18 +122,14 @@ class OpenMMInputMolRep(Molecule3DRep):
     
     @classmethod
     def from_PDBPathRep(cls, pdb_rep: PDBPathRep) -> OpenMMInputMolRep:
-        fixer = PDBFixer(pdb_rep.content)
-        fixer.removeHeterogens(keepWater=False) # TODO: Make it customizable.
-        fixer.findMissingResidues()
-        fixer.findMissingAtoms()
-        fixer.addMissingAtoms()
-        fixer.addMissingHydrogens(pH=DEFAULT_PH)
-        forcefield = ForceField(*DEFAULT_FORCEFIELDS)
-        system = forcefield.createSystem(fixer.topology)
-        return cls(topology=fixer.topology, 
+        pre_rep = OpenMMPreInputMolRep.from_PDBPathRep(pdb_rep)
+        if pre_rep.forcefield is None:
+            pre_rep.forcefield = ForceField(*DEFAULT_FORCEFIELDS)
+        system = pre_rep.forcefield.createSystem(pre_rep.topology)
+        return cls(topology=pre_rep.topology, 
                    system=system, 
-                   positions=fixer.positions, 
-                   forcefield=forcefield)
+                   positions=pre_rep.positions, 
+                   forcefield=pre_rep.forcefield)
     
     @classmethod
     def merge_reps(cls, reps: List[OpenMMInputMolRep], 

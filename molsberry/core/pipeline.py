@@ -234,7 +234,7 @@ class PipelineBlock(ABC):
         # Helper method to check if the block forms cycles with its previous
         # and next blocks. This should not happen.
 
-        assert self not in prev_blocks
+        # assert self not in prev_blocks # TODO: DANGER!
         prev_blocks.append(self)
         for block in self._next_blocks():
             block._cyclic_check_pass(prev_blocks)

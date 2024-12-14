@@ -13,7 +13,8 @@ from .calculators import (
 from .modifiers import (
     RDKitModifierBlock, # abstract
     RDKitHydrogenAdder, RDKitLigandHAdder,
-    RDKitLigandEmbedder
+    RDKitLigandEmbedder,
+    RDKitProteinConverterBlock
 )
 
 # Enumerators... (take molecule, enumerate it to multiple related molecules)

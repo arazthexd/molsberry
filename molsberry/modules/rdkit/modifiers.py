@@ -9,10 +9,10 @@ from rdkit.ForceField import rdForceField
 
 from molsberry.core.data import Representation
 
-from ...core import MoleculeData, Data, BatchedData, LigandData
+from ...core import MoleculeData, Data, BatchedData, LigandData, ProteinData
 from ...core import SimpleBlock, PLOptimizeJob, OptimizeJob
 
-from .representations import RDKitMolRep, RDKitSmallMolRep
+from .representations import RDKitMolRep, RDKitSmallMolRep, RDKitProtRep
 from .interface import RDKitInterface
 from .calculators import RDKitMMFFEnergyCalculator
 
@@ -71,7 +71,15 @@ class RDKitLigandEmbedder(RDKitInterface, RDKitLigandConverterBlock):
         if self.remove_hs:
             rdmol = Chem.RemoveHs(rdmol)
         return rdmol
-        
+
+class RDKitProteinConverterBlock(RDKitModifierBlock, ABC):
+    inputs = [
+        ("proteins", ProteinData, RDKitProtRep, False)
+    ]
+    outputs = [
+        ("proteins", ProteinData, RDKitProtRep, False)
+    ]
+
 
 
     
