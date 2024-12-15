@@ -81,8 +81,8 @@ class MOPACLigandOptimizer(MOPACOptimizer, SimpleBlock):
     outputs = [
         ("ligands", LigandData, [MOPACInputMolRep, 
                                  RDKitMolRep, PDBPathRep], False),
-        ("e_init", NumericData, FloatRep, False),
-        ("e_final", NumericData, FloatRep, False)
+        ("e_init", None, None, False),
+        ("e_final", None, None, False)
     ]
     batch_groups = []
 
