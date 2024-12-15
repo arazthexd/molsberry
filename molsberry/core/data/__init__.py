@@ -14,7 +14,7 @@ from .molecules import (
 
 # Generic
 from.generic import (
-    NumericData, IntData, FloatData, StringData, BooleanData, LocationData
+    NumericData, IntRep, FloatRep, StringData, BooleanData, LocationData
 )
 
 # Others...

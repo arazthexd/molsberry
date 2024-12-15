@@ -3,98 +3,187 @@ from typing import Any
 from .abstract import Data, Representation
 
 class NumericData(Data):
-    def __init__(self, num, init_rep = None):
+    def __init__(self, init_rep = None):
         super().__init__(init_rep)
+
+
+class IntRep(Representation):
+    rep_name = 'IntegerRepresentation'
+
+    def __init__(self, num):
         if not num:
-            raise NotImplementedError
-        if not isinstance(num, (int, float)):
+            raise ValueError
+        elif not isinstance(num, (int, float)):
+            try:
+                num = int(num)
+            except:
+                raise TypeError
+        self.content = num
+    
+    def __add__(self, value):
+        if isinstance(value, IntRep):
+            return IntRep(self.content + value.content)
+        else:
+            return IntRep(self.content + value)
+    
+    def __mul__(self, value):
+        if isinstance(value, IntRep):
+            return IntRep(self.content * value.content)
+        else:
+            return IntRep(self.content * value)
+        
+    def __add__(self, value):
+        if isinstance(value, IntRep):
+            return IntRep(self.content + value.content)
+        else:
+            return IntRep(self.content + value)
+    
+    def __sub__(self, value):
+        if isinstance(value, IntRep):
+            return IntRep(self.content - value.content)
+        else:
+            return FloatRep(self.content - value)
+    
+    def __mul__(self, value):
+        if isinstance(value, IntRep):
+            return IntRep(self.content * value.content)
+        else:
+            return IntRep(self.content * value)
+    
+    def __truediv__(self, value):
+        if isinstance(value, IntRep):
+            if value.content == 0:
+                raise ZeroDivisionError
+            return IntRep(self.content / value.content)
+        else:
+            if value == 0:
+                raise ZeroDivisionError
+            return IntRep(self.content / value)
+    
+    def __eq__(self, value):
+        if isinstance(value, IntRep):
+            return IntRep(self.content == value.content)
+        else:
+            return IntRep(self.content== value)
+
+    def _gt__(self, value):
+        if isinstance(value, IntRep):
+            return self.content > value.content
+        else:
+            return self.content > value
+    
+    def _lt__(self, value):
+        if isinstance(value, IntRep):
+            return self.content < value.content
+        else:
+            return self.content < value
+
+    def __ge__(self, value):
+        if isinstance(value, IntRep):
+            return self.content >= value.content
+        else:
+            return self.content >= value
+    
+    def __le__(self, value):
+        if isinstance(value, IntRep):
+            return self.content <= value.content
+        else:
+            return self.content >= value.content
+    
+    def __repr__(self):
+        return str(self.content)
+    
+    def __str__(self):
+        return str(self.content)
+        
+class FloatRep(Representation):
+    rep_name = 'FloatRepresentation'
+
+    def __init__(self, num):
+        if not num:
+            raise ValueError
+        elif not isinstance(num, (int, float)):
             try:
                 num = float(num)
             except:
                 raise TypeError
-        self.num = num
+        self.content = num
     
     def __add__(self, value):
-        if isinstance(value, NumericData):
-            return self.num + value.num
+        if isinstance(value, FloatRep):
+            return FloatRep(self.content + value.content)
         else:
-            return self.num + value
-    
-    def __sub__(self, value):
-        if isinstance(value, NumericData):
-            return self.num - value.num
-        else:
-            return self.num - value
+            return FloatRep(self.content + value)
     
     def __mul__(self, value):
-        if isinstance(value, NumericData):
-            return self.num * value.num
+        if isinstance(value, FloatRep):
+            return FloatRep(self.content * value.content)
         else:
-            return self.num * value
+            return FloatRep(self.content * value)
+        
+    def __add__(self, value):
+        if isinstance(value, FloatRep):
+            return FloatRep(self.content + value.content)
+        else:
+            return FloatRep(self.content + value)
+    
+    def __sub__(self, value):
+        if isinstance(value, FloatRep):
+            return FloatRep(self.content - value.content)
+        else:
+            return FloatRep(self.content - value)
+    
+    def __mul__(self, value):
+        if isinstance(value, FloatRep):
+            return FloatRep(self.content * value.content)
+        else:
+            return FloatRep(self.content * value)
     
     def __truediv__(self, value):
-        if isinstance(value, NumericData):
-            if value.num == 0:
+        if isinstance(value, FloatRep):
+            if value.content == 0:
                 raise ZeroDivisionError
-            return self.num / value.num
+            return FloatRep(self.content / value.content)
         else:
             if value == 0:
                 raise ZeroDivisionError
-            return self.num / value
+            return FloatRep(self.content / value)
     
     def __eq__(self, value):
-        if isinstance(value, NumericData):
-            return self.num == value.num
+        if isinstance(value, FloatRep):
+            return FloatRep(self.content == value.content)
         else:
-            return self.num == value
+            return FloatRep(self.content== value)
     
     def _gt__(self, value):
-        if isinstance(value, NumericData):
-            return self.num > value.num
+        if isinstance(value, FloatRep):
+            return self.content > value.content
         else:
-            return self.num > value
+            return self.content > value
     
     def _lt__(self, value):
-        if isinstance(value, NumericData):
-            return self.num < value.num
+        if isinstance(value, FloatRep):
+            return self.content < value.content
         else:
-            return self.num < value
+            return self.content < value
 
     def __ge__(self, value):
-        if isinstance(value, NumericData):
-            return self.num >= value.num
+        if isinstance(value, FloatRep):
+            return self.content >= value.content
         else:
-            return self.num >= value
+            return self.content >= value
     
     def __le__(self, value):
         if isinstance(value, NumericData):
-            return self.num <= value.num
+            return self.content <= value.content
         else:
-            return self.num >= value.num
+            return self.content >= value.content
     
     def __repr__(self):
-        return str(self.num)
+        return str(self.content)
     
     def __str__(self):
-        return str(self.num)
-
-class IntData(NumericData):
-    def __init__(self, num, init_rep = None):
-        super().__init__(num, init_rep)
-        if not isinstance(num, int):
-            try:
-                num = int(num)
-            except:
-                raise ValueError
-
-class FloatData(NumericData):
-    def __init__(self, num, init_rep = None):
-        super().__init__(num, init_rep)
-        if not isinstance(num, float):
-            try:
-                num = float(num)
-            except:
-                raise ValueError
+        return str(self.content)
 
 class StringData(Data):
     def __init__(self, string, init_rep = None):
