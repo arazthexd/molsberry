@@ -1,1 +1,3 @@
-from .blocks import Multiplier, Divider, Subtractor, Adder
+from .blocks import (
+    Multiplier, Divider, Subtractor, Adder
+)

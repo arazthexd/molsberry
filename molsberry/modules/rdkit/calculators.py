@@ -6,7 +6,7 @@ from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors, rdForceFieldHelpers
 from rdkit.ForceField import rdForceField
 
-from ...core import Representation, Molecule3DRep, MoleculeData
+from ...core import Representation, Molecule3DRep, MoleculeData, NumericData, FloatRep
 from ...core import PLInteractionJob, EnergyJob, SimpleBlock
 
 from .representations import RDKitMolRep, RDKitSmallMolRep
@@ -33,7 +33,7 @@ class RDKitMWCalculator(RDKitInterface, RDKitCalculatorBlock):
     name = "rdmolwtcalc"
     display_name = "RDKit Molecular Weight Calculator"
     outputs = [
-        ("molwt", None, None, False)
+        ("molwt", NumericData, FloatRep, False)
     ]
 
     def calculate(self, rdmol: Chem.Mol) -> Dict[str, float]:

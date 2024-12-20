@@ -1,6 +1,8 @@
 from typing import Any
+import numpy as np
 
 from .abstract import Data, Representation
+from .unspecified import UnspecifiedRep
 
 class NumericData(Data):
     def __init__(self, init_rep = None):
@@ -18,7 +20,14 @@ class FloatRep(Representation):
             except:
                 raise TypeError
         self.content = num
-    
+
+    @classmethod
+    def from_UnspecifiedRep(cls, num:UnspecifiedRep):
+        assert isinstance(num, UnspecifiedRep)
+        num = num.content
+        num = float(num)
+        return cls(num = num)
+        
     def __add__(self, value):
         if isinstance(value, FloatRep):
             return FloatRep(self.content + value.content)
@@ -94,26 +103,52 @@ class FloatRep(Representation):
     
     def __str__(self):
         return str(self.content)
+    
+class NpData(Data):  
+    def __init__(self, init_rep = None):
+        super().__init__(init_rep)
+
+class NpArrayRep(Representation):
+    rep_name = 'NumpyArrayRepresentation'
+
+    def __init__(self, value):  
+        if isinstance(value, np.ndarray):  
+            self.content = value 
+        else:  
+            self.content = np.array(value)
+    
+    @classmethod
+    def from_UnspecifiedRep(cls, npa:UnspecifiedRep):
+        assert isinstance(npa, UnspecifiedRep)
+        npa = npa.content
+        npa = np.array(npa)
+        return cls(npa = npa)
 
 class StringData(Data):
-    def __init__(self, string, init_rep = None):
+    def __init__(self, init_rep = None):
         super().__init__(init_rep)
+
+class StringRep(Representation):
+    rep_name = 'StringRepresentation'
+    def __init__(self, string):
         if not string:
-            raise NotImplementedError
+            raise ValueError
         if not isinstance(string, str):
             try:
                 string = str(string)
             except:
                 raise ValueError
+        self.content = string
+    
+    @classmethod
+    def from_UnspecifiedRep(cls, string:UnspecifiedRep):
+        assert isinstance(string, UnspecifiedRep)
+        string = string.content
+        string = str(string)
+        return cls(string = string)
 
 class BooleanData(Data):
-    def __init__(self, boolean, init_rep = None):
-        super().__init__(init_rep)
-        if not isinstance(boolean, bool):
-            try:
-                boolean = bool(boolean)
-            except:
-                raise ValueError
+    pass
     
 class LocationData(Data):
     pass

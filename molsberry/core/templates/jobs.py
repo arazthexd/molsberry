@@ -1,8 +1,10 @@
 from typing import Optional, Callable, Tuple, Any, Type, List, Dict
 from abc import ABC, abstractmethod
 
-from ..data import ProteinData, LigandData, Representation, MoleculeData
+from ..data import ProteinData, LigandData, Representation, MoleculeData, NumericData, FloatRep
 from .batchop import BatchOperatorBlock
+
+from ...core import NumericData, FloatRep
 
 class PLJob(ABC):
     @property
@@ -33,7 +35,7 @@ class EnergyJob(ABC):
     @property
     def outputs(self) -> List[Tuple[Any]]:
         return [
-            ("energy", None, None, False)
+            ("energy", NumericData, FloatRep, False)
         ]
     
     def calc_energy(self, mol, *args, **kwargs):        
@@ -53,8 +55,8 @@ class InteractionJob(EnergyJob, ABC):
     @property
     def outputs(self) -> List[Tuple[Any]]:
         # TODO: Update numeric data after adding it to core.
-        return [("e_interaction", None, None, False),
-                ("e_combined", None, None, False)] + \
+        return [("e_interaction", NumericData, FloatRep, False),
+                ("e_combined", NumericData, FloatRep, False)] + \
             self._get_outputs(self.optimize_keys)
     
     @staticmethod
@@ -107,8 +109,8 @@ class OptimizeJob(ABC):
     def outputs(self):
         return [
             ("molecules", MoleculeData, self.mol_rep, False),
-            ("e_init", None, None, False),
-            ("e_final", None, None, False),
+            ("e_init", NumericData, FloatRep, False),
+            ("e_final", NumericData, FloatRep, False),
         ]
     
     @abstractmethod
@@ -146,10 +148,10 @@ class PLOptimizeJob(PLJob, OptimizeJob, ABC):
         return [
             ("ligand", LigandData, self.lig_rep, False),
             ("protein", ProteinData, self.lig_rep, False),
-            ("e_ligand_init", None, None, False),
-            ("e_ligand_final", None, None, False),
-            ("e_protein_init", None, None, False),
-            ("e_protein_final", None, None, False),
+            ("e_ligand_init", NumericData, FloatRep, False),
+            ("e_ligand_final", NumericData, FloatRep, False),
+            ("e_protein_init", NumericData, FloatRep, False),
+            ("e_protein_final", NumericData, FloatRep, False),
         ]
     
     def optimize(self, ligand, protein):
