@@ -8,7 +8,7 @@ from copy import deepcopy
 
 from molsberry.core.data import Representation
 
-from ...core import LigandData, ProteinData, MoleculeData
+from ...core import LigandData, ProteinData, MoleculeData, NumericData, FloatRep, StringData, StringRep
 from ...core import SimpleBlock, PLInteractionJob
 
 from .representations import MOPACInputMolRep
@@ -23,16 +23,17 @@ class MOPACSinglePointCalculator(MOPACInterface, SimpleBlock):
         ("molecules", MoleculeData, MOPACInputMolRep, False)
     ]
     outputs = [
-        ("energy", None, None, False),
-        ("out_path", None, None, False),
-        ("arc_path", None, None, False)
+        ("energy", NumericData, FloatRep, False),
+        ("out_path", StringData, StringRep, False),
+        ("arc_path", StringData, StringRep, False)
     ]
     batch_groups = []
     potential_mopac_input_keys = ["molecules", "molecule", "ligands", "ligand",
                                   "proteins", "protein", "pockets", "pocket"]
 
     def __init__(self, config: MOPACConfig = MOPACConfig(),
-                 debug: bool = False, save_output: bool = False) -> None:
+                 debug: bool = False, save_output: bool = False,
+                 num_workers: int = None) -> None:
         config = deepcopy(config)
         config.keywords = [key for key in config.keywords 
                            if key not in MOPAC_OPTIMIZE_KEYWORDS]
@@ -40,7 +41,8 @@ class MOPACSinglePointCalculator(MOPACInterface, SimpleBlock):
             config.keywords.append("NOOPT")
 
         MOPACInterface.__init__(self, config=config)
-        SimpleBlock.__init__(self, debug=debug, save_output=save_output)
+        SimpleBlock.__init__(self, debug=debug, save_output=save_output,
+                             num_workers=num_workers)
 
     def operate(self, input_dict: Dict[str, MOPACInputMolRep]) \
         -> Dict[str, Representation]:
@@ -96,11 +98,13 @@ class MOPACPLInteractionCalculator(PLInteractionJob,
     prot_rep = MOPACInputMolRep
 
     def __init__(self, config = MOPACConfig(),
-                 debug: bool = False, save_output: bool = False) -> None:
+                 debug: bool = False, save_output: bool = False, 
+                 num_workers: int = None) -> None:
         MOPACSinglePointCalculator.__init__(self,
                                             debug=debug, 
                                             save_output=save_output, 
-                                            config=config)
+                                            config=config,
+                                            num_workers=num_workers)
         self.calculator = MOPACProteinSinglePointCalculator(config=config)
         energy_fn = self.calculator.calc_energy
         PLInteractionJob.__init__(self, energy_fn=energy_fn)

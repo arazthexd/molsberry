@@ -13,6 +13,8 @@ from ...core import LigandData, ProteinData, PDBPathRep
 from ...modules.rdkit import RDKitMolRep
 from ...global_conf import DATA_UNIQUE_CODE_LEN
 
+from ...core.data.generic import NumericData, FloatRep
+
 from .representations import MOPACInputMolRep
 from .configs import MOPACConfig, MOPACMozymeConfig
 from .interface import MOPACInterface
@@ -79,15 +81,17 @@ class MOPACLigandOptimizer(MOPACOptimizer, SimpleBlock):
     outputs = [
         ("ligands", LigandData, [MOPACInputMolRep, 
                                  RDKitMolRep, PDBPathRep], False),
-        ("e_init", None, None, False),
-        ("e_final", None, None, False)
+        ("e_init", NumericData, FloatRep, False),
+        ("e_final", NumericData, FloatRep, False)
     ]
     batch_groups = []
 
     def __init__(self, config: MOPACConfig = MOPACConfig(), 
                  opt_algorithm: str | None = None,
-                 debug: bool = False, save_output: bool = False) -> None:
-        SimpleBlock.__init__(self, debug=debug, save_output=save_output)
+                 debug: bool = False, save_output: bool = False,
+                 num_workers: int = None) -> None:
+        SimpleBlock.__init__(self, debug=debug, save_output=save_output,
+                              num_workers=num_workers)
         MOPACOptimizer.__init__(self, config=config, 
                                 opt_algorithm=opt_algorithm)
     

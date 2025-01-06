@@ -44,14 +44,6 @@ class RDKitMolRep(Molecule3DRep):
         assert isinstance(sdf_rep, SDFPathRep)
         sdf_path = sdf_rep.content
         mol = next(Chem.SDMolSupplier(sdf_path, removeHs=False, sanitize=True))
-
-        # Fix COO groups not being ionized when read from pdb in rdkit
-        # THIS IS COPIED FROM ABOVE...
-        query_COO = Chem.MolFromSmarts("[$([O]-C(=O)-C)]")
-        for atom, in mol.GetSubstructMatches(query_COO):
-            atom: Chem.Atom = mol.GetAtomWithIdx(atom)
-            if atom.GetPDBResidueInfo().GetIsHeteroAtom() == False:
-                atom.SetFormalCharge(-1)
         return cls(mol=mol)
     
     @classmethod

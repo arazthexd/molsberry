@@ -9,11 +9,14 @@ from .molecules import (
     MoleculeRep, MoleculeData,
     Molecule3DRep,
     MacroMolRep, ProteinRep, PDBPathRep, ProteinData,
-    SmallMolRep, SMILESRep, SDFPathRep, LigandData
+    SmallMolRep, SMILESRep, SDFPathRep, LigandData,
 )
 
 # Generic
-from.generic import LocationData
+from.generic import (
+    NumericData, FloatRep, StringData, StringRep, BooleanData, LocationData,
+    NpArrayRep, NpData
+)
 
 # Others...
 from .unspecified import UnspecifiedRep, UnspecifiedData
