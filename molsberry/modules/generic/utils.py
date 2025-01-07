@@ -1,11 +1,13 @@
 from typing import Dict, List
 
 from rdkit import Chem
+from rdkit.Chem import AllChem
 
 from ...core import (
-    SimpleBlock, MoleculeData, LigandData, ProteinData,
-    PDBPathRep,
-    Representation
+    SimpleBlock, 
+    MoleculeData, LigandData, ProteinData, StringData,
+    PDBPathRep, StringRep,
+    Representation,
 )
 from ..rdkit import RDKitMolRep, RDKitSmallMolRep
 
@@ -46,11 +48,20 @@ class RDKitBondOrderAssigner(SimpleBlock):
     name = "rdbondorder"
     display_name = "(RDKit) Bond Order Assigner From SMILES"
     inputs = [
-        ("molecules", MoleculeData, RDKitMolRep, False),
-        ("smiles", )
+        ("molecules", MoleculeData, RDKitSmallMolRep, False),
+        ("smiles", StringData, StringRep, False)
     ]
     outputs = [
-        ("ligands", LigandData, RDKitSmallMolRep, False),
-        ("proteins", ProteinData, RDKitMolRep, False)
+        ("molecules", MoleculeData, RDKitSmallMolRep, False)
     ]
-    batch_groups = []
+    batch_groups = [("molecules", "smiles")]
+
+    def operate(self, input_dict: Dict[str, Representation]):
+        
+        rdmol = input_dict[self.input_keys[0]].content
+        smi = input_dict[self.input_keys[1]].content
+        smimol = Chem.MolFromSmiles(smi)
+        rdmol = AllChem.AssignBondOrdersFromTemplate(refmol=smimol, mol=rdmol)
+        
+        out_key = self.output_keys[0]
+        return {out_key: self._get_out_rep(out_key)(rdmol)}
