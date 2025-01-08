@@ -48,11 +48,11 @@ class RDKitBondOrderAssigner(SimpleBlock):
     name = "rdbondorder"
     display_name = "(RDKit) Bond Order Assigner From SMILES"
     inputs = [
-        ("molecules", MoleculeData, RDKitSmallMolRep, False),
+        ("molecules", LigandData, RDKitSmallMolRep, False),
         ("smiles", StringData, StringRep, False)
     ]
     outputs = [
-        ("molecules", MoleculeData, RDKitSmallMolRep, False)
+        ("molecules", LigandData, RDKitSmallMolRep, False)
     ]
     batch_groups = [("molecules", "smiles")]
 
