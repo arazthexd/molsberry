@@ -6,6 +6,9 @@ Any feedbacks, collaborations and contributions are absolutely welcome!
 **Mo**dular **L**igand and **S**tructure-**b**ased Drug Discov**er(r)y** Framework in Python
 
 # To-Do
+## Critical
+- [ ] ASH Optimizer --> geomeTRIC optimization converge error
+
 ## Short-term
 - [ ] Add generic blocks such as mathematics, etc.
 - [ ] Add support for MM scoring / optimization. (OpenMM / Ambertools)

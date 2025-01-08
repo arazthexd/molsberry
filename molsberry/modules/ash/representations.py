@@ -20,18 +20,17 @@ class ASHFragmentRep(Representation):
         if rdmol.GetNumConformers() > 0: # What about 2D conformer?
             pos = rdmol.GetConformer().GetPositions()
             elems = [atom.GetSymbol() for atom in rdmol.GetAtoms()]
-            smi = None
         else:
             pos = None
             elems = None
-            smi = Chem.MolToSmiles(rdmol)
+        smi = Chem.MolToSmiles(rdmol, allHsExplicit=True)
         
         frag = ash.Fragment(smiles=smi, coords=pos, elems=elems,
                             mult=1, charge=Chem.GetFormalCharge(rdmol))
         return ASHFragmentRep(frag=frag, smiles=smi)
 
     def to_RDKitMolRep(self) -> RDKitMolRep:
-        rdmol = Chem.MolFromSmiles(self.smiles)
+        rdmol = Chem.MolFromSmiles(self.smiles, sanitize=False)
         rdmol.AddConformer(Chem.Conformer(rdmol.GetNumAtoms()))
         rdmol.GetConformer().SetPositions(self.content.coords)
         return RDKitMolRep(rdmol)
