@@ -8,12 +8,13 @@ Any feedbacks, collaborations and contributions are absolutely welcome!
 # To-Do
 ## Critical
 - [ ] ASH Optimizer --> geomeTRIC optimization converge error
+- [ ] Merge LigandData, MoleculeData, and ProteinData: Do we need all three?
 
 ## Short-term
-- [ ] Add generic blocks such as mathematics, etc.
-- [ ] Add support for MM scoring / optimization. (OpenMM / Ambertools)
+- [x] Add generic blocks such as mathematics, etc.
+- [x] Add support for MM scoring / optimization. (OpenMM / Ambertools)
 - [ ] Add support for QMMM scoring / optimization. (ASH / Cuby4 / Ambertools)
-- [ ] Add testing for entire pipelines.
+- [x] Add testing for entire pipelines.
 
 
 ## Long-term
