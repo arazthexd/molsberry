@@ -7,6 +7,7 @@ Any feedbacks, collaborations and contributions are absolutely welcome!
 
 # To-Do
 ## Critical
+- [ ] ASH Optimizer --> geomeTRIC optimization converge error
 - [ ] Merge LigandData, MoleculeData, and ProteinData: Do we need all three?
 
 ## Short-term

@@ -19,11 +19,11 @@ class RDKitInterface:
         return False
     
     @staticmethod
-    def addhs_based_on_confdim(lig: Chem.Mol):
+    def addhs_based_on_confdim(lig: Chem.Mol, res_info: bool = True):
         if RDKitInterface.is_mol_3d(lig):
-            return Chem.AddHs(lig, addCoords=True)
+            return Chem.AddHs(lig, addCoords=True, addResidueInfo=res_info)
         else:
-            return Chem.AddHs(lig)
+            return Chem.AddHs(lig, addResidueInfo=res_info)
 
     @staticmethod
     def get_rotatable_dihedrals(mol: Chem.Mol):

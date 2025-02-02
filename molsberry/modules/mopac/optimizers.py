@@ -25,7 +25,10 @@ from .shared import (
 
 class MOPACOptimizer(MOPACInterface, SimpleBlock):
     def __init__(self, config: MOPACConfig = MOPACConfig(),
-                 opt_algorithm: str | None = None) -> None:
+                 opt_algorithm: str | None = None,
+                 debug: bool = False,
+                 save_output: bool = False,
+                 num_workers: int = None) -> None:
         config = deepcopy(config)
         config.keywords.append("THREADS=1")
         config.keywords = [key for key in config.keywords
@@ -44,7 +47,10 @@ class MOPACOptimizer(MOPACInterface, SimpleBlock):
         if n_opt_keys > 1:
             raise ValueError("Only one keyword for opt should be in config.")
         
-        super().__init__(config=config)
+        MOPACInterface.__init__(self, config=config)
+        SimpleBlock.__init__(self, debug=debug, 
+                             save_output=save_output, 
+                             num_workers=num_workers)
     
     def run_opt(self, mopac_rep: MOPACInputMolRep | List[MOPACInputMolRep], 
                 debug: bool = False) -> Dict[str, Any]:

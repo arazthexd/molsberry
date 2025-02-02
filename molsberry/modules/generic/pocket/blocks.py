@@ -13,7 +13,7 @@ from .locationrep import PocketLocationRep, PocketLocation
 def nterm(emol: Chem.EditableMol, atom: Chem.Atom):
     aname = atom.GetPDBResidueInfo().GetName().strip()
 
-    if aname in ["O", "C"]:
+    if aname in ["O", "C", "CA"]: # changed: added CA
         pdbinfo = atom.GetPDBResidueInfo()
         pdbinfo.SetResidueName("ACE")
         emol.ReplaceAtom(atom.GetIdx(), atom)
