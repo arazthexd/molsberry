@@ -6,8 +6,8 @@ from rdkit.Chem import AllChem
 from ...core import (
     SimpleBlock, 
     MoleculeData, LigandData, ProteinData, StringData,
-    PDBPathRep, StringRep,
-    Representation,
+    PDBPathRep, StringRep, SDFPathRep,
+    Representation, generate_path_in_dir,
 )
 from ..rdkit import RDKitMolRep, RDKitSmallMolRep
 
@@ -65,3 +65,28 @@ class RDKitBondOrderAssigner(SimpleBlock):
         
         out_key = self.output_keys[0]
         return {out_key: self._get_out_rep(out_key)(rdmol)}
+    
+class RDKitProteinLigandCombiner(SimpleBlock):
+    name = "rdprotligcombiner"
+    display_name = "(RDKit) Protein Ligand Combiner"
+    inputs = [
+        ("ligands", LigandData, SDFPathRep, False),
+        ("proteins", ProteinData, PDBPathRep, False)
+    ]
+    outputs = [
+        ("complex", MoleculeData, PDBPathRep, False)
+    ]
+    batch_groups = []
+
+    def operate(self, input_dict: Dict[str, Representation]):
+        ligandrep = input_dict[self.input_keys[0]].content
+        proteinrep = input_dict[self.input_keys[1]].content
+        ligandmol = next(Chem.SDMolSupplier(ligandrep))
+        proteinmol = Chem.MolFromPDBFile(proteinrep)
+        combined_mol = Chem.CombineMols(ligandmol, proteinmol)
+        combined_path =  generate_path_in_dir(5, self.base_dir,'.pdb')
+        pdbwriter = Chem.PDBWriter(combined_path)
+        pdbwriter.write(combined_mol)
+        pdbwriter.close()
+        output = {"complex": PDBPathRep(combined_path)}
+        return output
