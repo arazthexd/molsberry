@@ -62,6 +62,15 @@ class Cuby4MergedConfig(Cuby4Config):
         merged = OrderedDict()
         for d in dicts:
             merged.update(d)
+
+        # TODO for mopac keywords
+        mopac_kwds = ""
+        for d in dicts:
+            if "mopac_keywords" in d:
+                mopac_kwds = " ".join([mopac_kwds, d["mopac_keywords"]])
+        if len(mopac_kwds) > 0:
+            merged["mopac_keywords"] = mopac_kwds
+
         return cls(merged)
 
 #####################################################################
@@ -181,6 +190,9 @@ class MOPACMozymeConfig(Cuby4Config, MOPACConfigUtils):
     
     def compile_cvb(self):
 
+        if len(self.neg_cvb) == 0:
+            return
+        
         cvb_str = "CVB("
         for aid1, aid2 in self.neg_cvb:
             if cvb_str != "CVB(":

@@ -74,6 +74,8 @@ class Cuby4MOPACEnergyCalculator(Cuby4Interface, SimpleBlock):
             output: str = self.run(full_config)
             energy = float(output.split("Energy:")[-1].split()[0])
             return {"energy": UnspecifiedRep(energy)}
+        
+
 
 class Cuby4MOPACEnergyOptimizer(Cuby4Interface, SimpleBlock):
     name = "c4mopacopt"
