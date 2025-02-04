@@ -47,7 +47,7 @@ class OpenMMPreInputMolRep(Molecule3DRep):
                 toolkit_registry=EspalomaChargeToolkitWrapper(), 
                 use_conformers=True)
         else:
-            raise NotImplementedError()
+            molecule.assign_partial_charges('mmff94')
         
         topology = molecule.to_topology().to_openmm()
         positions = openff_unit_to_openmm(molecule.conformers[0])
@@ -63,7 +63,7 @@ class OpenMMPreInputMolRep(Molecule3DRep):
     @classmethod
     def from_PDBPathRep(cls, pdb_rep: PDBPathRep) -> OpenMMPreInputMolRep:
         fixer = PDBFixer(pdb_rep.content)
-        fixer.removeHeterogens(keepWater=False) # TODO: Make it customizable.
+        # fixer.removeHeterogens(keepWater=False) # TODO: Make it customizable.
         fixer.findMissingResidues()
         fixer.findMissingAtoms()
         fixer.addMissingAtoms()

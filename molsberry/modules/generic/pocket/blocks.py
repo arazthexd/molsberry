@@ -5,7 +5,7 @@ from rdkit import Chem
 
 from ....core import (
     SimpleBlock, ProteinData, PDBPathRep, LocationData, Representation,
-    generate_random_str, LigandData
+    generate_random_str, MoleculeData
 )
 from ...rdkit import RDKitProtRep, RDKitMolRep
 from .locationrep import PocketLocationRep, PocketLocation
@@ -16,6 +16,7 @@ def nterm(emol: Chem.EditableMol, atom: Chem.Atom):
     if aname in ["O", "C", "CA"]: # changed: added CA
         pdbinfo = atom.GetPDBResidueInfo()
         pdbinfo.SetResidueName("ACE")
+        pdbinfo.SetIsHeteroAtom(False)
         emol.ReplaceAtom(atom.GetIdx(), atom)
         return
     
@@ -28,6 +29,7 @@ def cterm(emol: Chem.EditableMol, atom: Chem.Atom):
     if aname in ["N", "CA"]:
         pdbinfo = atom.GetPDBResidueInfo()
         pdbinfo.SetResidueName("NME")
+        pdbinfo.SetIsHeteroAtom(False)
         emol.ReplaceAtom(atom.GetIdx(), atom)
         return
     
@@ -38,7 +40,7 @@ class RDKitPocketIsolator(SimpleBlock):
     name = "rdpocketisolator"
     display_name = "(RDKit) Pocket Isolator"
     inputs = [
-        ("protein", ProteinData, RDKitProtRep, False),
+        ("protein", MoleculeData, RDKitProtRep, False),
         ("location", LocationData, PocketLocationRep, False)
     ]
     outputs = [
@@ -56,6 +58,7 @@ class RDKitPocketIsolator(SimpleBlock):
         rdpoc_pdb = generate_random_str(6)
         rdpoc_pdb = os.path.join(self.base_dir, f"{rdpoc_pdb}.pdb")
         Chem.MolToPDBFile(rdpoc, rdpoc_pdb)
+        print(rdpoc_pdb)
         return {main_out_key: self._get_out_rep(main_out_key)(rdpoc_pdb)}
 
     def isolate(self, rdprot: Chem.Mol, loc: PocketLocation) -> Chem.Mol:
@@ -78,6 +81,7 @@ class RDKitPocketIsolator(SimpleBlock):
 
         rdprotee = rdprote.GetMol()
         Chem.SanitizeMol(rdprotee)
+
         return rdprotee
     
     @staticmethod
@@ -139,7 +143,7 @@ class RDKitLigandPocketLocator(SimpleBlock):
     name = "rdligpoclocator"
     display_name = "(RDKit) Ligand Pocket Locator"
     inputs = [
-        ("ligand", LigandData, RDKitMolRep, False)
+        ("ligand", MoleculeData, RDKitMolRep, False)
     ]
     outputs = [
         ("location", LocationData, PocketLocationRep, False)
