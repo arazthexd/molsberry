@@ -34,7 +34,7 @@ class Cuby4Config:
                 cstring += f"{indent}{k}:\n"
                 indent += "  "
                 cstring += cls.config_to_string(v, indent)
-                print(cls.config_to_string(v, indent))
+                # print(cls.config_to_string(v, indent))
                 indent = indent[:-2]
 
         return cstring
@@ -139,6 +139,9 @@ class Cuby4MOPACInterfaceConfig(Cuby4InterfaceConfig, MOPACConfigUtils):
                  exe: str = "auto",
                  method = "pm6",
                  mozyme: str | bool = False,
+                 setpi: bool = False,
+                 setcharges: bool = False,
+                 cvb: bool = False,
                  keywords: str | List[str] = []):
         
         super().__init__(interface="mopac")
@@ -152,6 +155,9 @@ class Cuby4MOPACInterfaceConfig(Cuby4InterfaceConfig, MOPACConfigUtils):
         self.exe = exe
         self.method = method
         self.mozyme = mozyme
+        self.setpi = setpi
+        self.setcharges = setcharges
+        self.cvb = cvb
 
         self._update_c4mopac_keywords(keywords)
 

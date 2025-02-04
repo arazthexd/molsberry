@@ -94,7 +94,8 @@ class Adder(SimpleBlock):
         return [tuple(f"num{i+1}" for i in range(self.num_inputs))]
 
     def _generate_inputs(self) -> List[tuple]:  
-        return [(f"num{i+1}", NumericData, FloatRep, False) for i in range(self.num_inputs)] 
+        return [(f"num{i+1}", NumericData, FloatRep, False) 
+                for i in range(self.num_inputs)] 
 
 
     def adder(self, *args): 
@@ -103,7 +104,8 @@ class Adder(SimpleBlock):
     def operate(self, input_dict: Dict[str, Representation]) \
             -> Dict[str, Representation]:  
         
-        numbers = [input_dict[self.input_keys[i]].content for i in range(self.num_inputs)]  
+        numbers = [input_dict[self.input_keys[i]].content 
+                   for i in range(self.num_inputs)]  
         main_out_key = self.output_keys[0]  
 
         calc = self.adder(*numbers)  

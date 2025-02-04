@@ -20,7 +20,7 @@ class Cuby4MOPACEnergyCalculator(Cuby4Interface, SimpleBlock):
         ("molecules", MoleculeData, MOPACInputMolRep, False)
     ]
     outputs = [
-        ("energy", None, None, False),
+        ("energy", NumericData, FloatRep, False),
     ]
     batch_groups = []
     potential_cuby_input_keys = ["molecules", "molecule", "ligands", "ligand",
@@ -59,10 +59,19 @@ class Cuby4MOPACEnergyCalculator(Cuby4Interface, SimpleBlock):
             if self.interface_config.mozyme:
                 jc = Cuby4MergedConfig.from_config_list([
                     jc, MOPACMozymeConfig(
-                        setpi=frag.setpi,
+                        setpi=frag.setpi[:50],
                         neg_cvb=frag.neg_cvb
                     )
                 ])
+
+                if self.interface_config.setpi == False:
+                    _ = jc.config.pop("mopac_setpi")
+
+                print(jc.config["mopac_keywords"])
+                if self.interface_config.cvb == False:
+                    kwds = jc.config["mopac_keywords"].split()
+                    kwds = [kwd for kwd in kwds if "CVB" not in kwd]
+                    jc.config["mopac_keywords"] = " ".join(kwds)
 
             with open(jc.config["geometry"], "w") as f:
                 f.write(frag.coordinates)
@@ -71,9 +80,13 @@ class Cuby4MOPACEnergyCalculator(Cuby4Interface, SimpleBlock):
                 self.interface_config, jc
             ])
 
+            if self.interface_config.setcharges:
+                full_config.config["mopac_setcharge"] = {
+                    i+1: c for i, c in enumerate(frag.atom_charges)}
+
             output: str = self.run(full_config)
             energy = float(output.split("Energy:")[-1].split()[0])
-            return {"energy": UnspecifiedRep(energy)}
+            return {"energy": self._get_out_rep("energy")(energy)}
         
 
 
@@ -85,7 +98,7 @@ class Cuby4MOPACEnergyOptimizer(Cuby4Interface, SimpleBlock):
     ]
     outputs = [
         ("molecules", MoleculeData, PDBPathRep, False),
-        ("energy", None, None, False)
+        ("energy", NumericData, FloatRep, False)
     ]
     batch_groups = []
     potential_cuby_input_keys = ["molecules", "molecule", "ligands", "ligand",
@@ -130,6 +143,9 @@ class Cuby4MOPACEnergyOptimizer(Cuby4Interface, SimpleBlock):
                     )
                 ])
 
+                if self.interface_config.setpi == False:
+                    _ = jc.config.pop("mopac_setpi")
+
             with open(jc.config["geometry"], "w") as f:
                 f.write(frag.coordinates)
             
@@ -140,6 +156,6 @@ class Cuby4MOPACEnergyOptimizer(Cuby4Interface, SimpleBlock):
             output: str = self.run(full_config)
             energy = float(output.split("Energy:")[-1].split()[0])
             return {
-                "molecules": PDBPathRep(jc.config["restart_file"]),
-                "energy": UnspecifiedRep(energy)
+                "molecules": self._get_out_rep("molecules")(jc.config["restart_file"]),
+                "energy": self._get_out_rep("energy")(energy)
             }
