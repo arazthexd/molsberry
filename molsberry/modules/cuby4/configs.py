@@ -212,9 +212,14 @@ class MOPACMozymeConfig(Cuby4Config, MOPACConfigUtils):
 ##                          AMBER Classes                          ##
 #####################################################################
 
+import shutil, os
+
 class Cuby4AMBERInterfaceConfig(Cuby4InterfaceConfig, MOPACConfigUtils):
     def __init__(self,
-                 home: str):
+                 home: str = "auto"):
+
+        if home == "auto":
+            home = os.path.dirname(os.path.dirname(shutil.which("sander")))
         
         super().__init__(interface="amber")
         self.home = home

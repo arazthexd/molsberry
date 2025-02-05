@@ -1,18 +1,66 @@
 from copy import deepcopy
-from typing import Dict, List
+from typing import Dict, List, Any
 
 from ...core import *
 from ..mopac import MOPACInputMolRep
 from ..openmm import OpenMMInputMolRep
+from ..rdkit import RDKitMolRep
 
 from .configs import (
     Cuby4MOPACInterfaceConfig as C4MIC, 
     Cuby4EnergyJobConfig, 
     Cuby4MergedConfig,
     MOPACMozymeConfig,
-    Cuby4OptimizeJobConfig
+    Cuby4OptimizeJobConfig,
+    Cuby4Config,
+    Cuby4InterfaceConfig,
+    Cuby4JobConfig,
+    Cuby4AMBERInterfaceConfig
 )
 from .interface import Cuby4Interface
+
+class Cuby4GeneralEnergyCalculator(Cuby4Interface, SimpleBlock):
+    name = "c4generalspc"
+    display_name = "Cuby4-General Single Point Calculator"
+    inputs = [
+        ("molecules", MoleculeData, None, False)
+    ]
+    outputs = [
+        ("energy", NumericData, FloatRep, False),
+    ]
+    batch_groups = []
+
+    def __init__(self, 
+                 interface_config: Cuby4InterfaceConfig,
+                 debug: bool = False, 
+                 save_output: bool = False,
+                 work_dir: str = ".",
+                 cuby4_exe: str = "auto") -> None:
+        
+        interface_config = deepcopy(interface_config)
+
+        Cuby4Interface.__init__(self, 
+                                interface_config=interface_config,
+                                cuby4_exe=cuby4_exe,
+                                work_dir=work_dir)
+        SimpleBlock.__init__(self, debug=debug, save_output=save_output)
+
+    def generate_job_config(input_dict: Dict[str, Representation]) \
+        -> Cuby4JobConfig:
+        raise NotImplementedError()
+    
+    def operate(self, input_dict: Dict[str, Representation]) \
+        -> Dict[str, Representation]:
+            
+            jc = self.generate_job_config(input_dict)
+            
+            full_config = Cuby4MergedConfig.from_config_list([
+                self.interface_config, jc
+            ])
+
+            output: str = self.run(full_config)
+            energy = float(output.split("Energy:")[-1].split()[0])
+            return {"energy": self._get_out_rep("energy")(energy)}
 
 class Cuby4MOPACEnergyCalculator(Cuby4Interface, SimpleBlock):
     name = "c4mopacspc"
@@ -26,6 +74,8 @@ class Cuby4MOPACEnergyCalculator(Cuby4Interface, SimpleBlock):
     batch_groups = []
     potential_cuby_input_keys = ["molecules", "molecule", "ligands", "ligand",
                                   "proteins", "protein", "pockets", "pocket"]
+    
+    # TODO: Make it a subclass of General Energy Calculator Block
 
     def __init__(self, 
                  interface_config: C4MIC = C4MIC(),
@@ -162,6 +212,62 @@ class Cuby4MOPACEnergyOptimizer(Cuby4Interface, SimpleBlock):
             }
 
 import parmed
+import os, shutil
+
+class Cuby4AMBEREnergyCalculator(Cuby4GeneralEnergyCalculator):
+    name = "c4amberspc"
+    display_name = "Cuby4-AMBER Single Point Calculator"
+    inputs = [
+        ("molecules", MoleculeData, OpenMMInputMolRep, False),
+    ]
+    outputs = [
+        ("energy", NumericData, FloatRep, False),
+    ]
+    batch_groups = []
+
+    def __init__(self, 
+                 interface_config = None,
+                 debug: bool = False, 
+                 save_output: bool = False,
+                 work_dir: str = ".",
+                 cuby4_exe: str = "auto") -> None:
+        
+        if interface_config is None:
+            interface_config = Cuby4AMBERInterfaceConfig()
+        interface_config = deepcopy(interface_config)
+        
+        super().__init__(
+            interface_config=interface_config,
+            debug=debug,
+            save_output=save_output,
+            work_dir=work_dir,
+            cuby4_exe=cuby4_exe
+        )
+
+    def generate_job_config(self, input_dict):
+        omm_rep: OpenMMInputMolRep = input_dict[self.input_keys[0]]
+        struct: parmed.Structure = parmed.openmm.load_topology(
+            omm_rep.topology,
+            omm_rep.system,
+            omm_rep.positions
+        )
+        geometry = generate_path_in_dir(6, self.base_dir, ".pdb")
+        struct.save(geometry)
+
+        prmtop = generate_path_in_dir(6, self.base_dir, ".parm7")
+        struct.save(prmtop)
+
+        config = Cuby4EnergyJobConfig(
+            geometry=geometry
+        )
+        
+        mol_specifics = {
+            "amber_top_file": prmtop
+        }
+
+        config.config.update(mol_specifics)
+        
+        return config
 
 class Cuby4QMMMEnergyCalculator(Cuby4Interface, SimpleBlock):
     name = "c4qmmmspc"
