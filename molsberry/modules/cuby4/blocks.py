@@ -279,7 +279,7 @@ class Cuby4QMMMEnergyCalculator(Cuby4Interface, SimpleBlock):
     outputs = [
         ("energy", NumericData, FloatRep, False),
     ]
-    batch_groups = []
+    batch_groups = [("qm_region", "nonqm_region")]
 
     def __init__(self, 
                  interface_config,
