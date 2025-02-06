@@ -339,8 +339,11 @@ class Cuby4QMMMEnergyCalculator(Cuby4Interface, SimpleBlock):
         config.config["calculation_qmregion_mm"] = {"amber_top_file": parm7_qm}
 
         # job
-        config.config["job"] = "optimize"
-        config.config["maxcycles"] = 15
+        config.config["job"] = "energy"
+        #config.config["maxcycles"] = 15
 
         output: str = self.run(config)
-        print(output)
+        energy = float(output.split("Energy:")[-1].split()[0])
+        return {
+                "energy": self._get_out_rep("energy")(energy)
+            }
