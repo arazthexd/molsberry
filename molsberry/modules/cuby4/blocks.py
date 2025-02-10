@@ -224,7 +224,7 @@ class Cuby4AMBEREnergyCalculator(Cuby4GeneralEnergyCalculator):
     outputs = [
         ("energy", NumericData, FloatRep, False),
     ]
-    batch_groups = [("qm_region", "nonqm_region")]
+    batch_groups = []
 
     def __init__(self, 
                  interface_config = None,
