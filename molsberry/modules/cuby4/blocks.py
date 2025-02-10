@@ -184,7 +184,8 @@ class Cuby4MOPACEnergyOptimizer(Cuby4Interface, SimpleBlock):
                 geometry=generate_path_in_dir(6, self.work_dir, ".pdb"),
                 charge=frag.charge,
                 mult=1, # TODO
-                restart_file=generate_path_in_dir(6, self.work_dir, ".pdb")
+                restart_file=generate_path_in_dir(6, self.work_dir, ".pdb"),
+                maxcycles=7
             )
             if self.interface_config.mozyme:
                 jc = Cuby4MergedConfig.from_config_list([
@@ -223,7 +224,7 @@ class Cuby4AMBEREnergyCalculator(Cuby4GeneralEnergyCalculator):
     outputs = [
         ("energy", NumericData, FloatRep, False),
     ]
-    batch_groups = []
+    batch_groups = [("qm_region", "nonqm_region")]
 
     def __init__(self, 
                  interface_config = None,

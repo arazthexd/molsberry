@@ -108,7 +108,7 @@ class OpenMMInputMolRep(Molecule3DRep):
     @classmethod
     def from_RDKitMolRep(cls, rdkit_rep: RDKitMolRep) -> OpenMMInputMolRep:
         pre_rep = OpenMMPreInputMolRep.from_RDKitMolRep(rdkit_rep)
-        system = pre_rep.forcefield.createSystem(pre_rep.topology)
+        system = pre_rep.forcefield.createSystem(pre_rep.topology, rigidWater=False)
 
         return cls(topology=pre_rep.topology, 
                    system=system, 
@@ -125,7 +125,7 @@ class OpenMMInputMolRep(Molecule3DRep):
         pre_rep = OpenMMPreInputMolRep.from_PDBPathRep(pdb_rep)
         if pre_rep.forcefield is None:
             pre_rep.forcefield = ForceField(*DEFAULT_FORCEFIELDS)
-        system = pre_rep.forcefield.createSystem(pre_rep.topology)
+        system = pre_rep.forcefield.createSystem(pre_rep.topology, rigidWater=False)
         return cls(topology=pre_rep.topology, 
                    system=system, 
                    positions=pre_rep.positions, 
@@ -142,7 +142,7 @@ class OpenMMInputMolRep(Molecule3DRep):
         for rep in reps[1:]:
             modeller.add(rep.topology, rep.positions) # * unit.nanometer)
 
-        system = forcefield.createSystem(modeller.topology, **kwargs)
+        system = forcefield.createSystem(modeller.topology, rigidWater=False, **kwargs)
 
         return cls(topology=modeller.topology, 
                    system=system, 
