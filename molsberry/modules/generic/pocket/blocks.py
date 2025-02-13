@@ -13,7 +13,7 @@ from .locationrep import PocketLocationRep, PocketLocation
 
 PROT_RESNAMES = (pdbfixer.proteinResidues +
                  list(pdbfixer.substitutions.keys()) +
-                 ["HIE", "HID"])
+                 ["HIE", "HID", "GLH", "CYX"]) # TODO: what else
 
 def nterm(emol: Chem.EditableMol, atom: Chem.Atom):
     aname = atom.GetPDBResidueInfo().GetName().strip()
@@ -102,7 +102,8 @@ class RDKitPocketIsolator(SimpleBlock):
             #     continue
 
             if atom.GetPDBResidueInfo().GetResidueName() not in PROT_RESNAMES:
-                nonprotres.add(atom.GetPDBResidueInfo().GetResidueNumber())
+                if atom.GetPDBResidueInfo().GetResidueName() not in ["ACE", "NME"]:
+                    nonprotres.add(atom.GetPDBResidueInfo().GetResidueNumber())
                 continue
 
             if loc.point_is_included(pos[atom.GetIdx()]):
