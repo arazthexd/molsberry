@@ -4,7 +4,7 @@ from typing import List, Any
 from numpy import ndarray
 
 from rdkit import Chem
-from openmm import System
+from openmm import System, unit
 from openmm.app import Topology, ForceField, Modeller
 from openmmforcefields.generators import SMIRNOFFTemplateGenerator
 from openff.toolkit import Molecule
@@ -150,7 +150,8 @@ class OpenMMInputMolRep(Molecule3DRep):
                    forcefield=forcefield)
     
     def update_coordinates(self, coords: ndarray):
-        raise NotImplementedError()
+        # TODO: Check and test
+        self.positions = coords * unit.angstrom
     
     def save_rep(self, exless_filename: str):
         raise NotImplementedError()
