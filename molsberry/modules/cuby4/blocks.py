@@ -348,3 +348,95 @@ class Cuby4QMMMEnergyCalculator(Cuby4Interface, SimpleBlock):
         return {
                 "energy": self._get_out_rep("energy")(energy)
             }
+
+class Cuby4QMMMEnergyOptimizer(Cuby4Interface, SimpleBlock):
+    name = "c4qmmmspcop"
+    display_name = "Cuby4-QMMM Optimizer"
+    inputs = [
+        ("qm_region", MoleculeData, OpenMMInputMolRep, False),
+        ("nonqm_region", MoleculeData, OpenMMInputMolRep, False)
+    ]
+    outputs = [
+        ("energy", NumericData, FloatRep, False),
+        ("molecules", MoleculeData, PDBPathRep, False)
+    ]
+    batch_groups = [("qm_region", "nonqm_region")]
+
+    # TODO : we want metals in qmregion
+
+    def __init__(self, 
+                 interface_config,
+                 debug: bool = False, 
+                 save_output: bool = False,
+                 work_dir: str = ".",
+                 cuby4_exe: str = "auto",
+                 threads: int = 1,
+                 maxcycles: int = 10,
+                 restart_file: bool = True) -> None:
+        
+        self.work_dir = work_dir
+        self.threads = threads
+        self.maxcycles = maxcycles
+        self.restart_file = generate_path_in_dir(6, self.work_dir, ".pdb")
+        interface_config = deepcopy(interface_config)
+
+        Cuby4Interface.__init__(self, 
+                                interface_config=interface_config,
+                                cuby4_exe=cuby4_exe,
+                                work_dir=work_dir)
+        SimpleBlock.__init__(self, debug=debug, save_output=save_output)
+
+    def operate(self, input_dict: Dict[str, OpenMMInputMolRep]) -> Dict[str, Representation]:
+        config = deepcopy(self.interface_config)
+
+        omm_rep_qm = input_dict["qm_region"]
+        omm_rep_nonqm = input_dict["nonqm_region"]
+        struct_qm: parmed.Structure = parmed.openmm.load_topology(
+            omm_rep_qm.topology,
+            omm_rep_qm.system,
+            omm_rep_qm.positions
+        )
+        struct_nonqm: parmed.Structure = parmed.openmm.load_topology(
+            omm_rep_nonqm.topology,
+            omm_rep_nonqm.system,
+            omm_rep_nonqm.positions
+        )
+        struct_whole: parmed.Structure = struct_qm + struct_nonqm
+
+        # geometry, core
+        geometry = generate_path_in_dir(6, self.base_dir, ".pdb")
+        struct_whole.save(geometry)
+
+        core = f"1-{len(struct_qm.atoms)}"
+
+        config.config["geometry"] = geometry
+        config.config["qmmm_core"] = core
+        config.config["cuby_threads"] = self.threads
+        config.config['restart_file'] = self.restart_file
+
+        # calculation_qm: charge
+        charge = round(sum([atom.charge for atom in struct_qm.atoms]))
+        config.config["calculation_qm"]["charge"] = charge
+
+        # calculation_mm: parm7 mereged
+        parm7_whole = generate_path_in_dir(6, self.base_dir, ".parm7")
+        struct_whole.save(parm7_whole)
+
+        config.config["calculation_mm"]["amber_top_file"] = parm7_whole
+
+        # calculation_qmregion_mm: parm7 lig
+        parm7_qm = generate_path_in_dir(6, self.base_dir, ".parm7")
+        struct_qm.save(parm7_qm)
+
+        config.config["calculation_qmregion_mm"] = {"amber_top_file": parm7_qm}
+
+        # job
+        config.config["job"] = "optimize"
+        config.config["maxcycles"] = self.maxcycles
+
+        output: str = self.run(config)
+        energy = float(output.split("Energy:")[-1].split()[0])
+        return {
+                "energy": self._get_out_rep("energy")(energy),
+                "molecules": self._get_out_rep("molecules")(config.config["restart_file"])
+            }
