@@ -2,6 +2,7 @@ from typing import List, Dict
 import os
 
 from rdkit import Chem
+from pdbfixer import pdbfixer
 
 from ....core import (
     SimpleBlock, ProteinData, PDBPathRep, LocationData, Representation,
@@ -9,6 +10,10 @@ from ....core import (
 )
 from ...rdkit import RDKitProtRep, RDKitMolRep
 from .locationrep import PocketLocationRep, PocketLocation
+
+PROT_RESNAMES = (pdbfixer.proteinResidues +
+                 list(pdbfixer.substitutions.keys()) +
+                 ["HIE", "HID", "GLH", "CYX"]) # TODO: what else
 
 def nterm(emol: Chem.EditableMol, atom: Chem.Atom):
     aname = atom.GetPDBResidueInfo().GetName().strip()
@@ -62,7 +67,7 @@ class RDKitPocketIsolator(SimpleBlock):
         return {main_out_key: self._get_out_rep(main_out_key)(rdpoc_pdb)}
 
     def isolate(self, rdprot: Chem.Mol, loc: PocketLocation) -> Chem.Mol:
-        remres = self.get_remaining_residues(rdprot, loc)
+        remres, nonprotres = self.get_remaining_residues(rdprot, loc)
         terminal = self.identify_terminal_cappings(rdprot, remres)
 
         rdprote = Chem.EditableMol(rdprot)
@@ -75,7 +80,7 @@ class RDKitPocketIsolator(SimpleBlock):
                     nterm(rdprote, atom)
                 if terminal[remres.index(rn)] == "C":
                     cterm(rdprote, atom)
-            else:
+            elif rn not in nonprotres:
                 rdprote.RemoveAtom(atom.GetIdx())
         rdprote.CommitBatchEdit()
 
@@ -87,13 +92,20 @@ class RDKitPocketIsolator(SimpleBlock):
     @staticmethod
     def get_remaining_residues(rdprot: Chem.Mol, loc: PocketLocation):
         remres = set()
+        nonprotres = set()
         pos = rdprot.GetConformer().GetPositions()
         allres = set(atom.GetPDBResidueInfo().GetResidueNumber() 
                     for atom in rdprot.GetAtoms())
         for atom in rdprot.GetAtoms():
             atom: Chem.Atom
-            if atom.GetPDBResidueInfo().GetIsHeteroAtom():
+            # if atom.GetPDBResidueInfo().GetIsHeteroAtom(): # NOTE: What if a metal is hetero?
+            #     continue
+
+            if atom.GetPDBResidueInfo().GetResidueName() not in PROT_RESNAMES:
+                if atom.GetPDBResidueInfo().GetResidueName() not in ["ACE", "NME"]:
+                    nonprotres.add(atom.GetPDBResidueInfo().GetResidueNumber())
                 continue
+
             if loc.point_is_included(pos[atom.GetIdx()]):
                 rn = atom.GetPDBResidueInfo().GetResidueNumber()
                 remres.add(rn)
@@ -101,7 +113,7 @@ class RDKitPocketIsolator(SimpleBlock):
                     remres.add(rn-1)
                 if rn+1 in allres:
                     remres.add(rn+1)
-        return sorted(remres)
+        return sorted(remres), sorted(nonprotres)
     
     @staticmethod
     def identify_terminal_cappings(rdprot: Chem.Mol, remres: List[int]):
@@ -118,7 +130,7 @@ class RDKitPocketIsolator(SimpleBlock):
                 terminal.append(None)
                 continue
 
-            if prev_gap > 1 and next_gap > 1:
+            if prev_gap > 1 and next_gap > 1: # TODO: Can it ever happen?
                 terminal.append(None)
                 continue
 

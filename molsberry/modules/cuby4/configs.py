@@ -100,12 +100,14 @@ class Cuby4OptimizeJobConfig(Cuby4EnergyJobConfig):
                  geometry: str, 
                  charge: int = 0, 
                  mult: int = 1,
+                 maxcycles: int = 7,
                  restart_file: str = None):
         super().__init__(geometry, charge, mult)
         self.job = "optimize"
         self.config["job"] = "optimize" # TODO
         self.restart_file = restart_file
         self.config["restart_file"] = restart_file
+        self.config['maxcycles'] = maxcycles
 
 #####################################################################
 ##                          MOPAC Classes                          ##

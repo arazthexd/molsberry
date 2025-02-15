@@ -4,7 +4,11 @@ from typing import List, Any
 from numpy import ndarray
 
 from rdkit import Chem
+<<<<<<< HEAD
 from openmm import System, unit
+=======
+from openmm import System, unit, app
+>>>>>>> 27b0651e2ea49c2c545aff82993e12237f3ab921
 from openmm.app import Topology, ForceField, Modeller
 from openmmforcefields.generators import SMIRNOFFTemplateGenerator
 from openff.toolkit import Molecule
@@ -38,7 +42,7 @@ class OpenMMPreInputMolRep(Molecule3DRep):
     @classmethod
     def from_RDKitMolRep(cls, rdkit_rep: RDKitMolRep) -> OpenMMPreInputMolRep:
         rdmol = rdkit_rep.content
-        rdmol = Chem.AddHs(rdmol)
+        #rdmol = Chem.AddHs(rdmol) # TODO : It must have 'addcoords'; sometimes mistakes occur in the procedure.
         molecule = Molecule.from_rdkit(rdmol, allow_undefined_stereo=True,
                                        hydrogens_are_explicit=False)
         if ESPALOMA_CHARGE_AVAILABLE:
@@ -108,7 +112,7 @@ class OpenMMInputMolRep(Molecule3DRep):
     @classmethod
     def from_RDKitMolRep(cls, rdkit_rep: RDKitMolRep) -> OpenMMInputMolRep:
         pre_rep = OpenMMPreInputMolRep.from_RDKitMolRep(rdkit_rep)
-        system = pre_rep.forcefield.createSystem(pre_rep.topology)
+        system = pre_rep.forcefield.createSystem(pre_rep.topology, rigidWater=False)
 
         return cls(topology=pre_rep.topology, 
                    system=system, 
@@ -125,12 +129,38 @@ class OpenMMInputMolRep(Molecule3DRep):
         pre_rep = OpenMMPreInputMolRep.from_PDBPathRep(pdb_rep)
         if pre_rep.forcefield is None:
             pre_rep.forcefield = ForceField(*DEFAULT_FORCEFIELDS)
-        system = pre_rep.forcefield.createSystem(pre_rep.topology)
+        system = pre_rep.forcefield.createSystem(pre_rep.topology, rigidWater=False)
         return cls(topology=pre_rep.topology, 
                    system=system, 
                    positions=pre_rep.positions, 
                    forcefield=pre_rep.forcefield)
     
+    def to_RDKitMolRep(self):
+        rdkit_mol = Chem.RWMol()
+
+        openmm_atoms = list(self.topology.atoms())
+        atom_indices = {atom: idx for idx, atom in enumerate(openmm_atoms)}
+        for atom in openmm_atoms:
+            atom: app.Atom
+            atomic_number = atom.element.atomic_number
+            rdkit_atom = Chem.Atom(atomic_number)
+            rdkit_mol.AddAtom(rdkit_atom)
+
+        for bond in self.topology.bonds():
+            atom1, atom2 = bond
+            idx1 = atom_indices[atom1]
+            idx2 = atom_indices[atom2]
+            rdkit_mol.AddBond(idx1, idx2, Chem.BondType.SINGLE)
+        
+        rdkit_mol = rdkit_mol.GetMol()
+        conformer = Chem.Conformer(rdkit_mol.GetNumAtoms())
+        self.positions: unit.Quantity
+        conformer.SetPositions(self.positions.value_in_unit(unit.angstrom))
+        rdkit_mol.AddConformer(conformer)
+        Chem.SanitizeMol(rdkit_mol)
+
+        return rdkit_mol
+
     @classmethod
     def merge_reps(cls, reps: List[OpenMMInputMolRep], 
                    forcefield: ForceField | None = None, **kwargs):
@@ -142,7 +172,7 @@ class OpenMMInputMolRep(Molecule3DRep):
         for rep in reps[1:]:
             modeller.add(rep.topology, rep.positions) # * unit.nanometer)
 
-        system = forcefield.createSystem(modeller.topology, **kwargs)
+        system = forcefield.createSystem(modeller.topology, rigidWater=False, **kwargs)
 
         return cls(topology=modeller.topology, 
                    system=system, 
@@ -150,8 +180,13 @@ class OpenMMInputMolRep(Molecule3DRep):
                    forcefield=forcefield)
     
     def update_coordinates(self, coords: ndarray):
+<<<<<<< HEAD
         # TODO: Check and test
         self.positions = coords * unit.angstrom
+=======
+        coords = coords * unit.angstrom
+        self.positions = coords
+>>>>>>> 27b0651e2ea49c2c545aff82993e12237f3ab921
     
     def save_rep(self, exless_filename: str):
         raise NotImplementedError()
