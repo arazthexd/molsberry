@@ -3,7 +3,7 @@ from __future__ import annotations
 import parmed
 from rdkit import Chem
 
-from ...core import MoleculeRep
+from ...core import MoleculeRep, PDBPathRep
 from ..rdkit import RDKitMolRep
 
 BOND_ORDER_TO_RDBONDTYPE = {
@@ -16,6 +16,12 @@ BOND_ORDER_TO_RDBONDTYPE = {
 class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
     def __init__(self, structure: parmed.Structure):
         super().__init__(content=structure)
+        self.content: parmed.Structure
+    
+    @property
+    def parameterized(self) -> bool:
+        return self.content.atoms[0].atom_type != \
+            parmed.topologyobjects.UnassignedAtomType
 
     @staticmethod
     def rdatom2parmedatom(rdatom: Chem.Atom) -> parmed.Atom:
@@ -30,6 +36,12 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
     def from_RDKitMolRep(cls, rdrep: RDKitMolRep) -> ParmedMolRep:
         rdmol = rdrep.content
         stmol = cls.rdkit2parmed(rdmol)
+        return cls(stmol)
+    
+    @classmethod
+    def from_PDBPathRep(cls, pdbrep: PDBPathRep) -> ParmedMolRep:
+        pdb = pdbrep.content
+        stmol = parmed.load_file(pdb)
         return cls(stmol)
 
     def to_RDKitMolRep(self) -> RDKitMolRep:
