@@ -114,6 +114,9 @@ class PipelineBlock(ABC):
     
     @property
     def base_dir(self) -> str:
+        if self._parent is None:
+            print("Warning: base_dir is set to current directory as no parent was found.")
+            return "."
         return self._parent.base_dir
     
     @abstractmethod
