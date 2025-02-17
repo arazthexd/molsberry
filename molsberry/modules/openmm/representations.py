@@ -4,11 +4,7 @@ from typing import List, Any
 from numpy import ndarray
 
 from rdkit import Chem
-<<<<<<< HEAD
-from openmm import System, unit
-=======
 from openmm import System, unit, app
->>>>>>> 27b0651e2ea49c2c545aff82993e12237f3ab921
 from openmm.app import Topology, ForceField, Modeller
 from openmmforcefields.generators import SMIRNOFFTemplateGenerator
 from openff.toolkit import Molecule
@@ -148,8 +144,12 @@ class OpenMMInputMolRep(Molecule3DRep):
 
         for bond in self.topology.bonds():
             atom1, atom2 = bond
-            idx1 = atom_indices[atom1]
-            idx2 = atom_indices[atom2]
+            atom1: app.Atom
+            print(atom1.id, atom1.index)
+            idx1 = atom1.id
+            idx2 = atom2.id
+            # idx1 = atom_indices[atom1]
+            # idx2 = atom_indices[atom2]
             rdkit_mol.AddBond(idx1, idx2, Chem.BondType.SINGLE)
         
         rdkit_mol = rdkit_mol.GetMol()
@@ -180,13 +180,8 @@ class OpenMMInputMolRep(Molecule3DRep):
                    forcefield=forcefield)
     
     def update_coordinates(self, coords: ndarray):
-<<<<<<< HEAD
         # TODO: Check and test
         self.positions = coords * unit.angstrom
-=======
-        coords = coords * unit.angstrom
-        self.positions = coords
->>>>>>> 27b0651e2ea49c2c545aff82993e12237f3ab921
     
     def save_rep(self, exless_filename: str):
         raise NotImplementedError()
