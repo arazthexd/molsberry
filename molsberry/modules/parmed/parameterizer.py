@@ -47,7 +47,7 @@ class OpenMMProteinParameterizer(SimpleBlock):
                                                     protmodel.positions)
         
         key = self.output_keys[0]
-        return {key: self._get_out_rep(key)(ParmedMolRep(parammed_prot))}
+        return {key: self._get_out_rep(key)(parammed_prot)}
 
 class OpenFFSmallMoleculeParameterizer(SimpleBlock):
     name = "openff_small_mol_parameterizer"
@@ -86,7 +86,7 @@ class OpenFFSmallMoleculeParameterizer(SimpleBlock):
         parammed_struct = parmed.openmm.load_topology(ommtop, ommsys, ommpos)
         
         key = self.output_keys[0]
-        return {key: self._get_out_rep(key)(ParmedMolRep(parammed_struct))}
+        return {key: self._get_out_rep(key)(parammed_struct)}
     
 class PrmedUpdateCoordinates(SimpleBlock): # TODO: write!!!!
     name = "parmed_update_coordinates"

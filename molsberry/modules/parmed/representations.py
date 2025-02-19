@@ -14,6 +14,7 @@ BOND_ORDER_TO_RDBONDTYPE = {
 }
 
 class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
+    rep_name = "Parm_mol"
     def __init__(self, structure: parmed.Structure):
         super().__init__(content=structure)
         self.content: parmed.Structure
@@ -72,7 +73,11 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
     @staticmethod
     def parmed2rdkit(stmol: parmed.Structure) -> Chem.Mol:
         rdmoln = Chem.RWMol()
-        [rdmoln.AddAtom(Chem.Atom(atom.atomic_number)) for atom in stmol.atoms]
+        for atom in stmol.atoms:
+            atom: parmed.Atom
+            rdatom = Chem.Atom(atom.atomic_number)
+            rdatom.SetFormalCharge(atom.charge)
+            rdmoln.AddAtom(rdatom)
         [rdmoln.AddBond(bond.atom1.idx, bond.atom2.idx,
                         order=BOND_ORDER_TO_RDBONDTYPE.get(bond.order)) for bond in stmol.bonds]
         conformer = Chem.Conformer(rdmoln.GetNumAtoms())
@@ -80,3 +85,4 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
         rdmoln.AddConformer(conformer)
         rdmoln = rdmoln.GetMol()
         return rdmoln
+    
