@@ -43,11 +43,13 @@ class Cuby4MOPACEnergyCalculator(Cuby4GeneralEnergyCalculator):
         
         interface_config = deepcopy(interface_config)
 
-        Cuby4Interface.__init__(self, 
-                                interface_config=interface_config,
-                                cuby4_exe=cuby4_exe,
-                                work_dir=work_dir)
-        SimpleBlock.__init__(self, debug=debug, save_output=save_output)
+        super().__init__(
+            interface_config=interface_config,
+            debug=debug,
+            save_output=save_output,
+            work_dir=work_dir,
+            cuby4_exe=cuby4_exe
+        )
 
         self.interface_config: C4MIC
 
@@ -58,7 +60,7 @@ class Cuby4MOPACEnergyCalculator(Cuby4GeneralEnergyCalculator):
         mopac_rep = MOPACInputMolRep.from_RDKitMolRep(rdkit_rep) # TODO: Check
 
         jc = Cuby4EnergyJobConfig(
-            geometry=generate_path_in_dir(6, self.work_dir, "_c4mecinp.pdb"),
+            geometry=generate_path_in_dir(6, self.base_dir, "_c4mecinp.pdb"),
             charge=mopac_rep.charge,
             mult=1 # TODO: Others..?
         )
@@ -117,11 +119,13 @@ class Cuby4MOPACEnergyOptimizer(Cuby4GeneralBlock): # TODO: general optimizer
         
         interface_config = deepcopy(interface_config)
 
-        Cuby4Interface.__init__(self, 
-                                interface_config=interface_config,
-                                cuby4_exe=cuby4_exe,
-                                work_dir=work_dir)
-        SimpleBlock.__init__(self, debug=debug, save_output=save_output)
+        super().__init__(
+            interface_config=interface_config,
+            debug=debug,
+            save_output=save_output,
+            work_dir=work_dir,
+            cuby4_exe=cuby4_exe
+        )
 
         self.interface_config: C4MIC
 
@@ -137,12 +141,12 @@ class Cuby4MOPACEnergyOptimizer(Cuby4GeneralBlock): # TODO: general optimizer
 
         jc = Cuby4OptimizeJobConfig(
                 geometry=generate_path_in_dir(6, 
-                                              self.work_dir, 
+                                              self.base_dir, 
                                               "_c4meoinp.pdb"),
                 charge=mopac_rep.charge,
                 mult=1, # TODO
                 restart_file=generate_path_in_dir(6, 
-                                                  self.work_dir, 
+                                                  self.base_dir, 
                                                   "_c4meoout.pdb"),
                 maxcycles=self.max_cycles
             )

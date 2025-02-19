@@ -18,8 +18,14 @@ class Cuby4Interface:
             self.path = shutil.which("cuby4")
         else:
             self.path = str(pathlib.Path(cuby4_exe).absolute())
-        self.work_dir = str(pathlib.Path(work_dir).absolute())
+        self._work_dir = str(pathlib.Path(work_dir).absolute())
         self.interface_config = interface_config
+    
+    @property
+    def work_dir(self) -> str: # TODO: Clean up the work_dir mess
+        if hasattr(self, "base_dir"):
+            return self.base_dir
+        return self._work_dir
     
     def run(self, config: Cuby4Config, job_name: str = None):
         
