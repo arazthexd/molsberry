@@ -113,7 +113,7 @@ class Adder(SimpleBlock):
         solv = generate_random_str(6)  
         text_solv = os.path.join(self.base_dir, f"{solv}.txt")  
  
-        with open(text_solv, 'w') as f:  
+        with open(text_solv, 'w') as f:  # TODO save for rep
             f.write(str(calc))  
 
         return {main_out_key: self._get_out_rep(main_out_key)(calc)}  

@@ -6,6 +6,7 @@ from openmm import unit
 import parmed
 
 from ...core import *
+from ..parmed import ParmedMolRep
 from ..mopac import MOPACInputMolRep
 from ..openmm import OpenMMInputMolRep
 from ..rdkit import RDKitMolRep
@@ -779,6 +780,8 @@ class Cuby4QMMMEnergyOptimizer(Cuby4Interface, SimpleBlock):
     inputs = [
         ("qm_region", MoleculeData, ParmedMolRep, False),
         ("nonqm_region", MoleculeData, ParmedMolRep, False)
+        ("qm_region", MoleculeData, ParmedMolRep, False),
+        ("nonqm_region", MoleculeData, ParmedMolRep, False)
     ]
     outputs = [
         ("energy", NumericData, FloatRep, False),
@@ -811,6 +814,7 @@ class Cuby4QMMMEnergyOptimizer(Cuby4Interface, SimpleBlock):
                                 work_dir=work_dir)
         SimpleBlock.__init__(self, debug=debug, save_output=save_output)
 
+    def operate(self, input_dict: Dict[str, ParmedMolRep]) -> Dict[str, Representation]:
     def operate(self, input_dict: Dict[str, ParmedMolRep]) -> Dict[str, Representation]:
         config = deepcopy(self.interface_config)
 
@@ -863,6 +867,12 @@ class Cuby4QMMMEnergyOptimizer(Cuby4Interface, SimpleBlock):
         config.config["maxcycles"] = self.maxcycles
 
         output: str = self.run(config)
+        #update coordinates
+        restart_struct = parmed.load_file(self.restart_file)
+        restart_struct:parmed.Structure
+        struct_qm.coordinates = restart_struct.coordinates[:len(struct_qm.atoms)]
+        struct_nonqm.coordinates = restart_struct.coordinates[len(struct_qm.atoms):] # TODO update_coordinates
+
         energy = float(output.split("Energy:")[-1].split()[0])
 
         qmrep, nonqmrep = self.update_pl_coords(qmrep, 
