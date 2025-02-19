@@ -95,3 +95,68 @@ class Cuby4GeneralEnergyCalculator(Cuby4GeneralBlock):
                           final_config) -> Dict[str, Representation]:
         energy = float(cuby4_out.split("Energy:")[-1].split()[0])
         return {"energy": self._get_out_rep("energy")(energy)}
+    
+class Cuby4GeneralEnergyOptimizer(Cuby4GeneralBlock):
+    batch_groups = []
+
+    @property
+    def inputs(self):
+        return [
+            ("molecules", MoleculeData, self.mol_rep, False)
+        ]
+    
+    @property
+    def outputs(self):
+        return [
+            ("molecules", MoleculeData, None, False),
+            ("energy", NumericData, FloatRep, False),
+        ]
+    
+    def operate(self, input_dict: Dict[str, Representation]) \
+        -> Dict[str, Representation]:
+            
+        jc: Cuby4JobConfig = self.generate_job_config(input_dict)
+        assert "job" in jc.config
+        assert jc.config["job"] == "optimize"
+
+        # restart_file = generate_path_in_dir(6, self.base_dir, ".pdb")
+        # jc.config["restart_file"] = restart_file
+        # moved to generate_job_config method of individual blocks
+        
+        full_config = Cuby4MergedConfig.from_config_list([
+            self.interface_config, jc
+        ])
+
+        output: str = self.run(full_config)
+        energy = float(output.split("Energy:")[-1].split()[0])
+
+        print(jc.config["restart_file"])
+        restart_struct = parmed.load_file(jc.config["restart_file"])
+        restart_struct: parmed.Structure
+        mol_rep = deepcopy(input_dict["molecules"]) # TODO: Problem cause?
+        # assert isinstance(mol_rep, Molecule3DRep)
+        mol_rep: Molecule3DRep
+        mol_rep.update_coordinates(restart_struct.coordinates)
+
+        return {
+            "molecules": mol_rep,
+            "energy": self._get_out_rep("energy")(energy)
+        }
+    
+    def generate_out_dict(self, 
+                          input_dict: Dict[str, Representation],
+                          cuby4_out: str, 
+                          full_config: Cuby4Config) -> Dict[str, Representation]:
+        energy = float(cuby4_out.split("Energy:")[-1].split()[0])
+
+        parmed_rep: ParmedMolRep = input_dict[self.input_keys[0]]
+        structure: parmed.Structure = parmed_rep.content
+        structure = structure.copy(parmed.Structure) # TODO: works?
+        restart: parmed.Structure = parmed.load_file(
+            full_config.config["restart_file"])
+        structure.coordinates = restart.coordinates
+        parmed_rep = ParmedMolRep(structure)
+        return {
+            "molecules": parmed_rep,
+            "energy": self._get_out_rep("energy")(energy)
+        }

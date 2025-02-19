@@ -24,7 +24,11 @@ from ..configs import (
 )
 from ..interface import Cuby4Interface
 
-from .general import Cuby4GeneralEnergyCalculator, Cuby4GeneralBlock
+from .general import (
+    Cuby4GeneralBlock,
+    Cuby4GeneralEnergyCalculator,
+    Cuby4GeneralEnergyOptimizer
+)
 
 #####################################################################
 ##                          AMBER Blocks                           ##
@@ -90,6 +94,47 @@ class Cuby4AMBEREnergyCalculator(Cuby4GeneralEnergyCalculator):
 
         config = Cuby4EnergyJobConfig(
             geometry=geometry
+        )
+        
+        mol_specifics = {
+            "amber_top_file": prmtop
+        }
+        config.config.update(mol_specifics)
+
+        return config
+    
+class Cuby4AMBEREnergyOptimizer(Cuby4GeneralEnergyOptimizer):
+    name = "c4amberopt"
+    display_name = "Cuby4-AMBER Energy Optimizer"
+
+    def __init__(self, 
+                 interface_config = None,
+                 debug: bool = False, 
+                 save_output: bool = False,
+                 work_dir: str = ".",
+                 cuby4_exe: str = "auto") -> None:
+        
+        if interface_config is None:
+            interface_config = Cuby4AMBERInterfaceConfig()
+        interface_config = deepcopy(interface_config)
+        
+        super().__init__(
+            interface_config=interface_config,
+            debug=debug,
+            save_output=save_output,
+            work_dir=work_dir,
+            cuby4_exe=cuby4_exe
+        )
+
+    def generate_job_config(self, input_dict):
+        omm_rep: OpenMMInputMolRep = input_dict[self.input_keys[0]]
+        _, geometry, prmtop = _AMBER_Utils.parmed_to_parms(omm_rep, 
+                                                           self.base_dir)
+
+        restart_file = generate_path_in_dir(6, self.base_dir, ".pdb")
+        config = Cuby4OptimizeJobConfig(
+            geometry=geometry,
+            restart_file=restart_file
         )
         
         mol_specifics = {
