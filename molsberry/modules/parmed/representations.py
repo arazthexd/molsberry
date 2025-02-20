@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import parmed
 from rdkit import Chem
+import os
 
-from ...core import MoleculeRep, PDBPathRep
+from ...core import MoleculeRep, PDBPathRep, generate_path_in_dir
 from ..rdkit import RDKitMolRep
+
+from openbabel import openbabel, pybel
 
 BOND_ORDER_TO_RDBONDTYPE = {
     1.0: Chem.BondType.SINGLE,
@@ -41,9 +44,18 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
     
     @classmethod
     def from_PDBPathRep(cls, pdbrep: PDBPathRep) -> ParmedMolRep:
-        pdb = pdbrep.content
-        stmol = parmed.load_file(pdb)
-        return cls(stmol)
+        obConversion = openbabel.OBConversion()
+        obConversion.SetInAndOutFormats("pdb", "mol2")
+        mol = openbabel.OBMol()
+        obConversion.ReadFile(mol, pdbrep.content)
+        mol2_file = generate_path_in_dir(3, '.', '_obabel.mol2')
+        obConversion.WriteFile(mol, mol2_file)
+        os.remove(mol2_file) # TODO: do this with obConversion.WriteString
+        structure = parmed.load_file('protein.mol2', structure=True)
+        structure: parmed.Structure
+        [setattr(bond, 'order', 1) for bond in structure.bonds if bond.order == 1.5]   # TODO: should we keep this ???
+        return cls(structure)
+        
 
     def to_RDKitMolRep(self) -> RDKitMolRep:
         stmol: parmed.Structure = self.content
