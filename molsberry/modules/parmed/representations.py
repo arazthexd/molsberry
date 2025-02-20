@@ -76,7 +76,7 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
         for atom in stmol.atoms:
             atom: parmed.Atom
             rdatom = Chem.Atom(atom.atomic_number)
-            rdatom.SetFormalCharge(atom.charge)
+            rdatom.SetFormalCharge(int(atom.charge))
             rdmoln.AddAtom(rdatom)
         [rdmoln.AddBond(bond.atom1.idx, bond.atom2.idx,
                         order=BOND_ORDER_TO_RDBONDTYPE.get(bond.order)) for bond in stmol.bonds]

@@ -39,7 +39,7 @@ class Cuby4Interface:
         with open(config_path, "w") as f:
             f.write(config_str)
         
-        prev_path = os.curdir
+        prev_path = pathlib.Path(os.curdir).absolute()
         os.chdir(self.work_dir)
 
         for filename in glob.glob("job_*"):

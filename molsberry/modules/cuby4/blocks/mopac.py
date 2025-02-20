@@ -74,9 +74,11 @@ class Cuby4MOPACEnergyCalculator(Cuby4GeneralEnergyCalculator):
             ])
 
             if self.interface_config.setpi == False:
+                if "mopac_setpi" in jc.config:
                     _ = jc.config.pop("mopac_setpi")
 
             if self.interface_config.cvb == False:
+                if "mopac_keywords" in jc.config:
                     kwds = jc.config["mopac_keywords"].split()
                     kwds = [kwd for kwd in kwds if "CVB" not in kwd]
                     jc.config["mopac_keywords"] = " ".join(kwds)
@@ -160,6 +162,7 @@ class Cuby4MOPACEnergyOptimizer(Cuby4GeneralBlock): # TODO: general optimizer
             ])
 
             if self.interface_config.setpi == False:
+                if "mopac_setpi" in jc.config:
                     _ = jc.config.pop("mopac_setpi")
 
             if self.interface_config.cvb == False:

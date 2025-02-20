@@ -127,7 +127,7 @@ class Cuby4AMBEREnergyOptimizer(Cuby4GeneralEnergyOptimizer):
         )
 
     def generate_job_config(self, input_dict):
-        omm_rep: OpenMMInputMolRep = input_dict[self.input_keys[0]]
+        omm_rep: ParmedMolRep = input_dict[self.input_keys[0]]
         _, geometry, prmtop = _AMBER_Utils.parmed_to_parms(omm_rep, 
                                                            self.base_dir)
 
