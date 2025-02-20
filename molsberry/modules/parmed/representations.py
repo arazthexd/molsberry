@@ -56,11 +56,19 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
         coords = rdmol.GetConformer().GetPositions()
 
         for i, rdatom in enumerate(rdmol.GetAtoms()):
+            rdatom: Chem.Atom
             statom = ParmedMolRep.rdatom2parmedatom(rdatom)
-            stmol.add_atom(statom, resname="UNK", resnum=1)
+            pdbinfo = rdatom.GetPDBResidueInfo()
+            if pdbinfo is None:
+                stmol.add_atom(statom, resname="UNK", resnum=1)
+            else:
+                stmol.add_atom(statom, 
+                               pdbinfo.GetResidueName(), 
+                               pdbinfo.GetResidueNumber())
 
         stmol.coordinates = coords
 
+        # TODO: Kekulize?
         for i, rdbond in enumerate(rdmol.GetBonds()):
             rdbond: Chem.Bond
             at1, at2 = rdbond.GetBeginAtomIdx(), rdbond.GetEndAtomIdx()
@@ -73,10 +81,18 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
     @staticmethod
     def parmed2rdkit(stmol: parmed.Structure) -> Chem.Mol:
         rdmoln = Chem.RWMol()
-        for atom in stmol.atoms:
+        for i, atom in enumerate(stmol.atoms):
             atom: parmed.Atom
             rdatom = Chem.Atom(atom.atomic_number)
             rdatom.SetFormalCharge(int(atom.charge))
+            pdbinfo = Chem.AtomPDBResidueInfo(
+                atomName=atom.name,
+                serialNumber=i,
+                residueName=atom.residue.name,
+                residueNumber=atom.residue.number,
+                chainId=atom.residue.chain
+            )
+            rdatom.SetPDBResidueInfo(pdbinfo)
             rdmoln.AddAtom(rdatom)
         [rdmoln.AddBond(bond.atom1.idx, bond.atom2.idx,
                         order=BOND_ORDER_TO_RDBONDTYPE.get(bond.order)) for bond in stmol.bonds]
