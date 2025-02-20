@@ -50,8 +50,8 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
         obConversion.ReadFile(mol, pdbrep.content)
         mol2_file = generate_path_in_dir(3, '.', '_obabel.mol2')
         obConversion.WriteFile(mol, mol2_file)
+        structure = parmed.load_file(mol2_file, structure=True)
         os.remove(mol2_file) # TODO: do this with obConversion.WriteString
-        structure = parmed.load_file('protein.mol2', structure=True)
         structure: parmed.Structure
         [setattr(bond, 'order', 1) for bond in structure.bonds if bond.order == 1.5]   # TODO: should we keep this ???
         return cls(structure)
