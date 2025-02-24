@@ -53,6 +53,8 @@ class OpenMMProteinParameterizer(SimpleBlock):
         parammed_prot = parmed.openmm.load_topology(protmodel.topology, 
                                                     sysprot, 
                                                     protmodel.positions)
+        for i, atom in enumerate(parammed_prot.atoms):
+            atom.formal_charge = stprot.atoms[i].formal_charge
         
         key = self.output_keys[0]
         return {key: self._get_out_rep(key)(parammed_prot)}
