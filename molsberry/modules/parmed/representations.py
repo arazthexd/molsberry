@@ -37,7 +37,7 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
     def rdatom2parmedatom(rdatom: Chem.Atom) -> parmed.Atom:
         return parmed.Atom(
             name=rdatom.GetSymbol()+str(rdatom.GetIdx()),
-            charge=rdatom.GetFormalCharge(),
+            formal_charge=rdatom.GetFormalCharge(),
             mass=rdatom.GetMass(),
             atomic_number=rdatom.GetAtomicNum()
         )
@@ -50,7 +50,6 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
     
     @classmethod
     def from_PDBPathRep(cls, pdbrep: PDBPathRep) -> ParmedMolRep:
-
         pdb = pdbrep.content
         st = cls.pdb2parmed(pdb)
         return cls(st)
@@ -58,6 +57,36 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
     @staticmethod
     def pdb2parmed(pdb: str) -> parmed.Structure:
         st: parmed.Structure = parmed.load_file(pdb)
+        
+        for atom in st.atoms:
+            atom: parmed.Atom
+
+            if atom.residue.name == "LYS" and atom.name == "NZ":
+                atom.formal_charge = 1
+            
+            if atom.residue.name == "ARG" and atom.name == "NH1":
+                atom.formal_charge = 1
+
+            if atom.residue.name == "HIP" and atom.name == "ND1":
+                atom.formal_charge = 1
+
+            if atom.residue.name == "GLU" and atom.name == "OE2":
+                atom.formal_charge = -1
+            
+            if atom.residue.name == "ASP" and atom.name == "OD2":
+                atom.formal_charge = -1
+
+            if atom.residue == st.residues[0]:
+                if atom.residue.name not in ["NME", "ACE"]:
+                    if atom.name == "N":
+                        atom.formal_charge = 1
+            
+            if atom.residue == st.residues[-1]:
+                if atom.residue.name not in ["NME", "ACE"]:
+                    if atom.name == "OXT":
+                        atom.formal_charge = -1
+            
+        
         for bond in st.bonds:
             bond: parmed.Bond
             atom1: parmed.Atom = bond.atom1
@@ -171,7 +200,7 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
         for i, atom in enumerate(stmol.atoms):
             atom: parmed.Atom
             rdatom = Chem.Atom(atom.atomic_number)
-            rdatom.SetFormalCharge(int(atom.charge))
+            rdatom.SetFormalCharge(atom.formal_charge)
             pdbinfo = Chem.AtomPDBResidueInfo(
                 atomName=atom.name,
                 serialNumber=i,
