@@ -46,6 +46,7 @@ class RDKitMolRep(Molecule3DRep):
                 print(f"WARNING: A metal atom from pdb file had unspecified charge. 2+ will be used, unless charge specified in the file.")
                 print("file:", pdb_path)
                 print("atom idx:", atom.GetIdx())
+                atom.SetFormalCharge(2)
 
         return cls(mol=mol)
     
