@@ -95,6 +95,8 @@ class OpenFFSmallMoleculeParameterizer(SimpleBlock):
         parammed_struct = parmed.openmm.load_topology(stmol.topology, 
                                                       ommsys, 
                                                       stmol.coordinates)
+        for i, atom in enumerate(parammed_struct.atoms):
+            atom.formal_charge = stmol.atoms[i].formal_charge
         
         key = self.output_keys[0]
         return {key: self._get_out_rep(key)(parammed_struct)}
