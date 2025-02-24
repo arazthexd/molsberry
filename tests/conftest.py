@@ -1,5 +1,5 @@
 import pytest
-import os, pathlib, shutil
+import os, pathlib, shutil, warnings
 
 from rdkit import Chem
 from rdkit.Chem import rdDistGeom
@@ -22,6 +22,13 @@ SMILES = [
 SDF_PATHS = [
     "./tests/data/processed/kguD_lig.sdf"
 ]
+if os.path.exists("./data/PL-REX"):
+    SDF_PATHS += [
+        "./data/PL-REX/001-CA2/structures_pl-rex/5NXG/ligand.sdf",
+        "./data/PL-REX/006-BACE1/structures_pl-rex/5QCR/ligand.sdf"
+    ]
+else:
+    warnings.warn("PL-REX database not found in data.")
 
 @pytest.fixture(params=SMILES+SDF_PATHS)
 def sample_sm_rdrep(request) -> RDKitMolRep:
