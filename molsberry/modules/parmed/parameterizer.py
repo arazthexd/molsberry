@@ -73,7 +73,7 @@ class OpenFFSmallMoleculeParameterizer(SimpleBlock):
         stmol = input_dict[self.input_keys[0]].content
         rdmol = ParmedMolRep.parmed2rdkit(stmol)
         offmol = Molecule.from_rdkit(rdmol, hydrogens_are_explicit=True, allow_undefined_stereo=True)
-        offmol.assign_partial_charges('mmff94')
+        offmol.assign_partial_charges('mmff94') # TODO: Change...
         offtop = offmol.to_topology()
         offpos = offmol.conformers[0]
         ommtop = offtop.to_openmm()
@@ -83,27 +83,30 @@ class OpenFFSmallMoleculeParameterizer(SimpleBlock):
         self.forcefield.registerTemplateGenerator(smirnoff.generator)
 
         ommsys = self.forcefield.createSystem(ommtop)
-        parammed_struct = parmed.openmm.load_topology(ommtop, ommsys, ommpos)
+        # parammed_struct = parmed.openmm.load_topology(ommtop, ommsys, ommpos)
+        parammed_struct = parmed.openmm.load_topology(stmol.topology, 
+                                                      ommsys, 
+                                                      stmol.coordinates)
         
         key = self.output_keys[0]
         return {key: self._get_out_rep(key)(parammed_struct)}
     
-class PrmedUpdateCoordinates(SimpleBlock): # TODO: write!!!!
-    name = "parmed_update_coordinates"
-    display_name = "Parmed Coordinate Updater"
-    inputs = [
-        ("molecules", MoleculeData, PDBPathRep, False),
-        ("molecules", MoleculeData,)
-    ]
-    outputs = [
-        ("molecules", MoleculeData, ParmedMolRep, False),
-    ]
-    batch_groups = []
+# class PrmedUpdateCoordinates(SimpleBlock): # TODO: write!!!!
+#     name = "parmed_update_coordinates"
+#     display_name = "Parmed Coordinate Updater"
+#     inputs = [
+#         ("molecules", MoleculeData, PDBPathRep, False),
+#         ("molecules", MoleculeData,)
+#     ]
+#     outputs = [
+#         ("molecules", MoleculeData, ParmedMolRep, False),
+#     ]
+#     batch_groups = []
 
-    def __init__(self, debug: bool = False, save_output: bool = False) -> None:
-        SimpleBlock.__init__(self, debug=debug, save_output=save_output)
-        raise NotImplementedError()
+#     def __init__(self, debug: bool = False, save_output: bool = False) -> None:
+#         SimpleBlock.__init__(self, debug=debug, save_output=save_output)
+#         raise NotImplementedError()
     
-    def operate(self, input_dict: Dict[str, ParmedMolRep]) \
-        -> Dict[str, ParmedMolRep]:
-        pass
+#     def operate(self, input_dict: Dict[str, ParmedMolRep]) \
+#         -> Dict[str, ParmedMolRep]:
+#         pass

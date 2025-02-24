@@ -51,7 +51,13 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
     @classmethod
     def from_PDBPathRep(cls, pdbrep: PDBPathRep) -> ParmedMolRep:
 
-        st: parmed.Structure = parmed.load_file(pdbrep.content)
+        pdb = pdbrep.content
+        st = cls.pdb2parmed(pdb)
+        return cls(st)
+    
+    @staticmethod
+    def pdb2parmed(pdb: str) -> parmed.Structure:
+        st: parmed.Structure = parmed.load_file(pdb)
         for bond in st.bonds:
             bond: parmed.Bond
             atom1: parmed.Atom = bond.atom1
@@ -123,7 +129,7 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
                         bond.order = 1.5  # Aromatic bond order
                 if check_atom_and_res_names(atom1, atom2, "CG", "CD1"):
                     bond.order = 2
-        return cls(st)
+        return st
             
 
     def to_RDKitMolRep(self) -> RDKitMolRep:
@@ -181,5 +187,7 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
         conformer.SetPositions(stmol.coordinates)
         rdmoln.AddConformer(conformer)
         rdmoln = rdmoln.GetMol()
+        Chem.SanitizeMol(rdmoln)
+        rdmoln.UpdatePropertyCache()
         return rdmoln
     

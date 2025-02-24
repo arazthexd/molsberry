@@ -2,9 +2,10 @@ import os
 from os.path import join, exists, dirname
 
 from rdkit import Chem
-from rdkit.Chem import AllChem
+from rdkit.Chem import AllChem, rdForceFieldHelpers
 
-from openmm.app import PDBFile
+import openmm
+from openmm.app import PDBFile, Simulation, ForceField
 from pdbfixer import PDBFixer
 
 from molsberry.modules.generic import PocketLocation, RDKitPocketIsolator
@@ -48,3 +49,16 @@ rdprot = Chem.MolFromPDBFile(join(processed_dir, "kguD_prot.pdb"),
 rdpoc = RDKitPocketIsolator().isolate(rdprot, loc)
 Chem.MolToPDBFile(rdpoc, join(processed_dir, "kguD_poc.pdb"))
 
+# KGUD POCKET HYDROGEN OPTIMIZATION
+fixer = PDBFixer(join(processed_dir, "kguD_poc.pdb"))
+fixer.addMissingHydrogens()
+ff = ForceField("amber14-all.xml")
+system = ff.createSystem(fixer.topology)
+integ = openmm.LangevinIntegrator(300, 0.05, 0.002)
+simul = Simulation(fixer.topology, system, integ)
+simul.context.setPositions(fixer.positions)
+simul.minimizeEnergy()
+
+PDBFile.writeFile(fixer.topology, 
+                  simul.context.getState(getPositions=True).getPositions(),
+                  join(processed_dir, "kguD_poc_opt.pdb"))

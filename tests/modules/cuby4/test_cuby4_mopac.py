@@ -18,15 +18,17 @@ from molsberry.modules.cuby4 import (
 BASE_DIR = "./test_out"
 
 def save_result_for_later_inspection(name):
+    old_dir = os.path.join(BASE_DIR, "job_MOPAC")
+    new_dir = os.path.join(BASE_DIR, f"_job_MOPAC_{name}")
+
     if os.path.exists(os.path.join(BASE_DIR, "job_MOPAC")):
-        old_dir = os.path.join(BASE_DIR, "job_MOPAC")
-        new_dir = os.path.join(BASE_DIR, f"_job_MOPAC_{name}")
-        print(new_dir)
+        if os.path.exists(new_dir):
+            shutil.rmtree(new_dir)
         os.rename(old_dir, new_dir)
 
 @pytest.fixture()
 def mopac_energy_block():
-    iconf = Cuby4MOPACInterfaceConfig(mozyme=True)
+    iconf = Cuby4MOPACInterfaceConfig(mozyme=True, setpi=True)
     block = Cuby4MOPACEnergyCalculator(interface_config=iconf)
     return block
 
