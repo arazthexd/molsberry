@@ -52,6 +52,11 @@ PROT_PATHS = [
     pathlib.Path("./tests/data/processed/kguD_prot.pdb").absolute()
 ]
 
+if os.path.exists("./data/PL-REX"):
+    PROT_PATHS += [
+        pathlib.Path("data/PL-REX/002-HIV-PR/structures_pl-rex/1HSG/protein.pdb").absolute()
+    ]
+
 @pytest.fixture(params=PROT_PATHS)
 def sample_prot_pdbrep(request):
     return PDBPathRep(request.param)
