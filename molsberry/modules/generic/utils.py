@@ -119,8 +119,7 @@ class ParmedMoleculeCombiner(SimpleBlock):
     def operate(self, input_dict: Dict[str, Representation]):
         molecules = [input_dict[self.input_keys[i]].content 
             for i in range(self.num_inputs)]  
-        merged_structures = sum(molecules,
-                                 start=input_dict[self.input_keys[0]].content)
+        merged_structures = sum(molecules[1:], start=molecules[0])
         merged_structures: parmed.Structure
         output = {"complex": ParmedMolRep(merged_structures)}
         return output
