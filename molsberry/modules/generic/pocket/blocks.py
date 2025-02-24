@@ -1,12 +1,14 @@
 from typing import List, Dict
 import os
 
+import numpy as np
+
 from rdkit import Chem
 from pdbfixer import pdbfixer
 
 from ....core import (
     SimpleBlock, ProteinData, PDBPathRep, LocationData, Representation,
-    generate_random_str, MoleculeData
+    generate_random_str, MoleculeData, generate_path_in_dir
 )
 from ...rdkit import RDKitProtRep, RDKitMolRep
 from .locationrep import PocketLocationRep, PocketLocation
@@ -15,28 +17,120 @@ PROT_RESNAMES = (pdbfixer.proteinResidues +
                  list(pdbfixer.substitutions.keys()) +
                  ["HIE", "HID", "GLH", "CYX"]) # TODO: what else
 
-def nterm(emol: Chem.EditableMol, atom: Chem.Atom):
+def nterm(emol: Chem.RWMol, atom: Chem.Atom):
     aname = atom.GetPDBResidueInfo().GetName().strip()
+    pdbinfo = atom.GetPDBResidueInfo()
+    if pdbinfo.GetResidueName() == "ACE":
+        return
 
-    if aname in ["O", "C", "CA"]: # changed: added CA
-        pdbinfo = atom.GetPDBResidueInfo()
-        pdbinfo.SetResidueName("ACE")
-        pdbinfo.SetIsHeteroAtom(False)
+    pdbinfo.SetResidueName("ACE")
+    pdbinfo.SetIsHeteroAtom(False)
+
+    coords = emol.GetConformer().GetPositions()
+    
+    if aname in ["O", "C"]:
         emol.ReplaceAtom(atom.GetIdx(), atom)
         return
     
+    if aname == "CA":
+        newname = "CH3"
+        pdbinfo.SetName(newname)
+        emol.ReplaceAtom(atom.GetIdx(), atom)
+        return
+    
+    if aname in ["HA", "HA2", "HA3"]:
+        newname = {"HA": "HH31", "HA2": "HH31", "HA3": "HH32"}.get(aname)
+        pdbinfo.SetName(newname)
+        emol.ReplaceAtom(atom.GetIdx(), atom)
+        return
+
+    if aname in ["CB", "N"]:
+        newname = {"CB": "HH32", "N": "HH33"}.get(aname)
+        newatom = Chem.Atom(1)
+        pdbinfo.SetName(newname)
+        newatom.SetPDBResidueInfo(pdbinfo)
+
+        coords_h: np.ndarray = coords[atom.GetIdx()]
+        atom_ca = [atom for atom in atom.GetNeighbors() 
+                   if atom.GetPDBResidueInfo().GetName().strip() in ["CA", 
+                                                                     "CH3"]][0]
+        coords_ca: np.ndarray = coords[atom_ca.GetIdx()]
+        vec = (coords_h - coords_ca) * 1.08 / np.linalg.norm(coords_h - coords_ca) 
+        coords_h_new = coords_ca + vec
+        coords[atom.GetIdx()] = coords_h_new
+        emol.GetConformer().SetPositions(coords)
+
+        emol.ReplaceAtom(atom.GetIdx(), newatom)
+        return
+
     emol.RemoveAtom(atom.GetIdx())
     return
 
-def cterm(emol: Chem.EditableMol, atom: Chem.Atom):
+def cterm(emol: Chem.RWMol, atom: Chem.Atom):
     aname = atom.GetPDBResidueInfo().GetName().strip()
+    pdbinfo = atom.GetPDBResidueInfo()
+    if pdbinfo.GetResidueName() == "NME":
+        return
+    
+    resname = pdbinfo.GetResidueName()
+    pdbinfo.SetResidueName("NME")
+    pdbinfo.SetIsHeteroAtom(False)
 
-    if aname in ["N", "CA"]:
-        pdbinfo = atom.GetPDBResidueInfo()
-        pdbinfo.SetResidueName("NME")
-        pdbinfo.SetIsHeteroAtom(False)
+    coords = emol.GetConformer().GetPositions()
+
+    if aname in ["N", "H"]:
         emol.ReplaceAtom(atom.GetIdx(), atom)
         return
+    
+    if aname == "CA":
+        newname = "CH3"
+        pdbinfo.SetName(newname)
+        emol.ReplaceAtom(atom.GetIdx(), atom)
+        return
+    
+    if aname in ["HA", "HA2", "HA3"]:
+        newname = {"HA": "HH31", "HA2": "HH31", "HA3": "HH32"}.get(aname)
+        pdbinfo.SetName(newname)
+        emol.ReplaceAtom(atom.GetIdx(), atom)
+        return
+
+    if aname in ["CB", "C"]:
+        newname = {"CB": "HH32", "C": "HH33"}.get(aname)
+        newatom = Chem.Atom(1)
+        pdbinfo.SetName(newname)
+        newatom.SetPDBResidueInfo(pdbinfo)
+
+        coords_h: np.ndarray = coords[atom.GetIdx()]
+        atom_ca = [atom for atom in atom.GetNeighbors() 
+                   if atom.GetPDBResidueInfo().GetName().strip() in ["CA", 
+                                                                     "CH3"]][0]
+        coords_ca: np.ndarray = coords[atom_ca.GetIdx()]
+        vec = (coords_h - coords_ca) * 1.08 / np.linalg.norm(coords_h - coords_ca) 
+        coords_h_new = coords_ca + vec
+        coords[atom.GetIdx()] = coords_h_new
+        emol.GetConformer().SetPositions(coords)
+
+        emol.ReplaceAtom(atom.GetIdx(), newatom)
+        return
+    
+    if aname == "CD" and resname == "PRO":
+        newname = "H"
+        newatom = Chem.Atom(1)
+        pdbinfo.SetName(newname)
+        newatom.SetPDBResidueInfo(pdbinfo)
+
+        coords_h: np.ndarray = coords[atom.GetIdx()]
+        atom_n = [atom for atom in atom.GetNeighbors() 
+                   if atom.GetPDBResidueInfo().GetName().strip() in ["N"]][0]
+        coords_n: np.ndarray = coords[atom_n.GetIdx()]
+        vec = (coords_h - coords_n) * 1.08 / np.linalg.norm(coords_h - coords_n) 
+        coords_h_new = coords_n + vec
+        coords[atom.GetIdx()] = coords_h_new
+        emol.GetConformer().SetPositions(coords)
+
+        emol.ReplaceAtom(atom.GetIdx(), newatom)
+        return
+
     
     emol.RemoveAtom(atom.GetIdx())
     return
@@ -45,11 +139,11 @@ class RDKitPocketIsolator(SimpleBlock):
     name = "rdpocketisolator"
     display_name = "(RDKit) Pocket Isolator"
     inputs = [
-        ("protein", MoleculeData, RDKitProtRep, False),
+        ("protein", MoleculeData, RDKitMolRep, False),
         ("location", LocationData, PocketLocationRep, False)
     ]
     outputs = [
-        ("pocket", ProteinData, PDBPathRep, False)
+        ("pocket", MoleculeData, RDKitMolRep, False) # Before: PDBPathRep
     ]
     batch_groups = [("protein", "location")]
 
@@ -57,20 +151,24 @@ class RDKitPocketIsolator(SimpleBlock):
         -> Dict[str, Representation]:
 
         rdprot = input_dict[self.input_keys[0]].content
+        for b in rdprot.GetBonds():
+            if b.GetBondType() == 2: print("double bond found!"); break
         loc = input_dict[self.input_keys[1]].content
         rdpoc = self.isolate(rdprot, loc)
         main_out_key = self.output_keys[0]
-        rdpoc_pdb = generate_random_str(6)
-        rdpoc_pdb = os.path.join(self.base_dir, f"{rdpoc_pdb}.pdb")
+
+        rdpoc_pdb = generate_path_in_dir(6, self.base_dir, "_pocisoout.pdb")
         Chem.MolToPDBFile(rdpoc, rdpoc_pdb)
-        print(rdpoc_pdb)
-        return {main_out_key: self._get_out_rep(main_out_key)(rdpoc_pdb)}
+        
+        return {main_out_key: self._get_out_rep(main_out_key)(rdpoc)}
+        # Before: rdpoc_pdb
 
     def isolate(self, rdprot: Chem.Mol, loc: PocketLocation) -> Chem.Mol:
         remres, nonprotres = self.get_remaining_residues(rdprot, loc)
         terminal = self.identify_terminal_cappings(rdprot, remres)
 
-        rdprote = Chem.EditableMol(rdprot)
+        # rdprote = Chem.EditableMol(rdprot)
+        rdprote = Chem.RWMol(rdprot)
         rdprote.BeginBatchEdit()
         for atom in rdprot.GetAtoms():
             atom: Chem.Atom
