@@ -9,6 +9,8 @@ from .interface import RDKitInterface
 
 from rdkit import Chem
 
+QUERY_METAL_2P = Chem.MolFromSmarts("[#12,#25,#26,#27,#29,#30]")
+
 class RDKitMolRep(Molecule3DRep):
     rep_name = "rdmol"
 
@@ -37,6 +39,14 @@ class RDKitMolRep(Molecule3DRep):
             atom: Chem.Atom = mol.GetAtomWithIdx(atom)
             if atom.GetPDBResidueInfo().GetIsHeteroAtom() == False:
                 atom.SetFormalCharge(-1)
+
+        for atom, in mol.GetSubstructMatches(QUERY_METAL_2P):
+            atom: Chem.Atom = mol.GetAtomWithIdx(atom)
+            if atom.GetFormalCharge() == 0:
+                print(f"WARNING: A metal atom from pdb file had unspecified charge. 2+ will be used, unless charge specified in the file.")
+                print("file:", pdb_path)
+                print("atom idx:", atom.GetIdx())
+
         return cls(mol=mol)
     
     @classmethod

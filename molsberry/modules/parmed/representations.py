@@ -16,6 +16,8 @@ BOND_ORDER_TO_RDBONDTYPE = {
     3.0: Chem.BondType.TRIPLE,
 }
 
+METAL_2P_ATOMIC_NUMS = [12, 25, 26, 27, 29, 30]
+
 def check_atom_and_res_names(atom1, atom2, name1, name2, resname=None):
     if resname is not None:
         if atom1.residue.name != resname or atom2.residue.name != resname:
@@ -60,6 +62,13 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
         
         for atom in st.atoms:
             atom: parmed.Atom
+
+            if atom.atomic_number in METAL_2P_ATOMIC_NUMS:
+                if atom.formal_charge is None or atom.formal_charge == 0:
+                    atom.formal_charge = 2
+                    print(f"WARNING: A metal atom from pdb file had unspecified charge. 2+ will be used, unless charge specified in the file.")
+                    print("file:", pdb)
+                    print("atom idx:", atom.idx)
 
             if atom.residue.name == "LYS" and atom.name == "NZ":
                 atom.formal_charge = 1
