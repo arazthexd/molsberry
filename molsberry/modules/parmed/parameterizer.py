@@ -1,6 +1,6 @@
 from typing import Dict
 
-from openmm import app
+from openmm import app, unit
 from pdbfixer import PDBFixer
 import parmed
 from openff.toolkit import Molecule
@@ -34,14 +34,22 @@ class OpenMMProteinParameterizer(SimpleBlock):
         -> Dict[str, ParmedMolRep]:
 
         stprot = input_dict[self.input_keys[0]].content
+
+        for res in stprot.residues:
+            if res.name == "WAT": res.name = "HOH" # TODO: move to amber block
+
         topprot = stprot.topology
         posprot = stprot.coordinates
-        pdbfixer_input_path = generate_path_in_dir(6, self.base_dir, "_ommpp.pdb")
-        app.PDBFile.writeFile(topprot, posprot, pdbfixer_input_path)
-        protmodel = PDBFixer(pdbfixer_input_path)
-        protmodel.addMissingHydrogens()
+        # pdbfixer_input_path = generate_path_in_dir(6, self.base_dir, "_ommpp.pdb")
+        # app.PDBFile.writeFile(topprot, posprot, pdbfixer_input_path)
+        # protmodel = PDBFixer(pdbfixer_input_path)
+        # protmodel.addMissingHydrogens()
+        # protmodel = app.PDBFile(pdbfixer_input_path)
+        protmodel = app.Modeller(topprot, posprot*unit.angstrom)
+        protmodel.addHydrogens(self.forcefield)
 
-        sysprot = self.forcefield.createSystem(protmodel.topology)
+        sysprot = self.forcefield.createSystem(protmodel.topology, 
+                                               rigidWater=False)
         parammed_prot = parmed.openmm.load_topology(protmodel.topology, 
                                                     sysprot, 
                                                     protmodel.positions)
