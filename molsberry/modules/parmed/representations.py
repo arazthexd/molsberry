@@ -201,6 +201,18 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
                                 order=rdbond.GetBondTypeAsDouble())
             stmol.bonds.append(stbond)
 
+        res_number_list = []
+        for res in stmol.residues:
+            res: parmed.Residue
+            res_num = res.number
+            if res_num not in res_number_list:
+                res_number_list.append(res.number)
+            else:
+                print(stmol.residues[res_num])
+                atoms = res.atoms
+                [stmol.atoms.remove(atom) for atom in atoms]
+                [stmol.residues[res_num-1].add_atom(atom) for atom in atoms]
+                
         return stmol
     
     @staticmethod
