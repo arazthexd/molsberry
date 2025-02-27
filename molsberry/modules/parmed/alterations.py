@@ -13,7 +13,7 @@ from ...core import SimpleBlock, MoleculeData, generate_path_in_dir
 from ..openmm import DEFAULT_FORCEFIELDS
 from .representations import ParmedMolRep
 from ...core import PDBPathRep, LocationData
-from ..generic import PocketLocationRep, PocketLocation
+from ...core import PocketLocationRep, PocketLocation
 
 def shorten_distance(pos_fixed: np.ndarray, pos_free: np.ndarray, dist: float, debug: bool = False):
     diff = pos_free - pos_fixed

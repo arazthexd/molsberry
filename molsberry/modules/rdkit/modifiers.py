@@ -12,7 +12,8 @@ from molsberry.core.data import Representation
 from ...core import MoleculeData, Data, BatchedData, LigandData, ProteinData
 from ...core import SimpleBlock, PLOptimizeJob, OptimizeJob
 
-from .representations import RDKitMolRep, RDKitSmallMolRep, RDKitProtRep
+from .representations import RDKitMolRep
+from .specific_reps import RDKitSmallMolRep, RDKitProtRep
 from .interface import RDKitInterface
 from .calculators import RDKitMMFFEnergyCalculator
 

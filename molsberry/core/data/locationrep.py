@@ -2,7 +2,7 @@ import numpy as np
 
 from rdkit import Chem
 
-from ....core import Representation
+from .abstract import Representation
 
 class PocketLocation:
     """Handles pocket location specifications for different systems.

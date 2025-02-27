@@ -13,10 +13,12 @@ from .molecules import (
 )
 
 # Generic
-from.generic import (
+from .generic import (
     NumericData, FloatRep, StringData, StringRep, BooleanData, LocationData,
     NpArrayRep, NpData
 )
 
 # Others...
 from .unspecified import UnspecifiedRep, UnspecifiedData
+
+from .locationrep import PocketLocationRep, PocketLocation

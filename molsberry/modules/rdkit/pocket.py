@@ -11,7 +11,7 @@ from ...core import (
     generate_random_str, MoleculeData, generate_path_in_dir
 )
 from . import RDKitProtRep, RDKitMolRep
-from ..generic.pocket import PocketLocationRep, PocketLocation
+from ...core import PocketLocationRep, PocketLocation
 
 PROT_RESNAMES = (pdbfixer.proteinResidues +
                  list(pdbfixer.substitutions.keys()) +

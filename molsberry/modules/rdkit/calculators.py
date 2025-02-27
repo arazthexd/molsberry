@@ -9,7 +9,8 @@ from rdkit.ForceField import rdForceField
 from ...core import Representation, Molecule3DRep, MoleculeData, NumericData, FloatRep
 from ...core import PLInteractionJob, EnergyJob, SimpleBlock
 
-from .representations import RDKitMolRep, RDKitSmallMolRep
+from .representations import RDKitMolRep
+from .specific_reps import RDKitSmallMolRep
 from .interface import RDKitInterface
 
 class RDKitCalculatorBlock(SimpleBlock, ABC):

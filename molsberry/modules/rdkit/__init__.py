@@ -1,6 +1,7 @@
 # RDKit Baseline...
 from .interface import RDKitInterface
-from .representations import RDKitMolRep, RDKitProtRep, RDKitSmallMolRep
+from .representations import RDKitMolRep
+from .specific_reps import RDKitProtRep, RDKitSmallMolRep
 
 # Calculators... (take molecule and give some props)
 from .calculators import (
@@ -37,3 +38,9 @@ from .optimizers import (
 )
 
 
+from .pocket import RDKitPocketIsolator, RDKitLigandPocketLocator
+from .utils import (
+    RDKitBondOrderAssigner, 
+    RDKitProteinLigandCombiner, 
+    RDKitProteinLigandSplitter
+)
