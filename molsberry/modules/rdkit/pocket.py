@@ -6,16 +6,40 @@ import numpy as np
 from rdkit import Chem
 from pdbfixer import pdbfixer
 
-from ....core import (
+from ...core import (
     SimpleBlock, ProteinData, PDBPathRep, LocationData, Representation,
     generate_random_str, MoleculeData, generate_path_in_dir
 )
-from ...rdkit import RDKitProtRep, RDKitMolRep
-from .locationrep import PocketLocationRep, PocketLocation
+from . import RDKitProtRep, RDKitMolRep
+from ..generic.pocket import PocketLocationRep, PocketLocation
 
 PROT_RESNAMES = (pdbfixer.proteinResidues +
                  list(pdbfixer.substitutions.keys()) +
                  ["HIE", "HID", "GLH", "CYX"]) # TODO: what else
+
+class RDKitLigandPocketLocator(SimpleBlock):
+    name = "rdligpoclocator"
+    display_name = "(RDKit) Ligand Pocket Locator"
+    inputs = [
+        ("ligand", MoleculeData, RDKitMolRep, False)
+    ]
+    outputs = [
+        ("location", LocationData, PocketLocationRep, False)
+    ]
+    batch_groups = []
+
+    def __init__(self, radius: float, 
+                 debug = False, save_output = False, num_workers = None):
+        super().__init__(debug, save_output, num_workers)
+        self.radius = radius
+
+    def operate(self, input_dict: Dict[str, Representation]) \
+        -> Dict[str, Representation]:
+
+        rdmol = input_dict[self.input_keys[0]].content
+        main_out_key = self.output_keys[0]
+        loc = PocketLocation("ligand", ligand=rdmol, radius=self.radius)
+        return {main_out_key: self._get_out_rep(main_out_key)(loc)}
 
 def nterm(emol: Chem.RWMol, atom: Chem.Atom):
     aname = atom.GetPDBResidueInfo().GetName().strip()
@@ -135,11 +159,68 @@ def cterm(emol: Chem.RWMol, atom: Chem.Atom):
     emol.RemoveAtom(atom.GetIdx())
     return
 
+def cyx_fix(emol: Chem.RWMol, atom: Chem.Atom, loc: PocketLocation):
+    if atom.GetSymbol() != "S":
+        return
+    
+    if atom.GetPDBResidueInfo().GetResidueName() != "CYX":
+        return
+    
+    ref_s = atom
+    ref_s_rn = atom.GetPDBResidueInfo().GetResidueNumber()
+    coords = emol.GetConformer().GetPositions()
+
+    if not any(loc.point_is_included(coords[at.GetIdx()]) 
+               for at in emol.GetAtoms()
+               if at.GetPDBResidueInfo().GetResidueNumber() == ref_s_rn):
+        return
+    
+    nei_s = [nei for nei in ref_s.GetNeighbors() if nei.GetSymbol() == "S"]
+    if nei_s.__len__() == 0:
+        print("WARNING: Potential Problem in ss_removal in pocket isolation")
+        return
+    nei_s: Chem.Atom = nei_s[0]
+
+    nei_s_rn = nei_s.GetPDBResidueInfo().GetResidueNumber()
+    if any(loc.point_is_included(coords[at.GetIdx()]) 
+           for at in emol.GetAtoms()
+           if at.GetPDBResidueInfo().GetResidueNumber() == nei_s_rn):
+        return
+    
+    for at in emol.GetAtoms():
+        at: Chem.Atom
+        pi = at.GetPDBResidueInfo()
+        if pi.GetResidueNumber() == ref_s_rn:
+            pi.SetResidueName("CYS")
+            at.SetPDBResidueInfo(pi)
+            emol.ReplaceAtom(at.GetIdx(), at)
+    
+    ref_s_pdbinfo = ref_s.GetPDBResidueInfo()
+    nei_h = Chem.Atom(1)
+    nei_pi = Chem.AtomPDBResidueInfo(
+        atomName="HG",
+        residueName="CYS",
+        residueNumber=ref_s_pdbinfo.GetResidueNumber(),
+        chainId=ref_s_pdbinfo.GetChainId(),
+    )
+    nei_h.SetPDBResidueInfo(nei_pi)
+    nei_h_idx = emol.ReplaceAtom(nei_s.GetIdx(), nei_h)
+    
+    atom_coords: np.ndarray = coords[atom.GetIdx()]
+    nei_s_coords = emol.GetConformer().GetPositions()[nei_s.GetIdx()]
+    vec = (nei_s_coords - atom_coords) * 1.37 / np.linalg.norm(nei_s_coords - atom_coords) 
+    coords_h_new = atom_coords + vec
+    # coords = np.concatenate([coords, coords_h_new.reshape(1, 3)])
+    coords[nei_s.GetIdx()] = coords_h_new
+    emol.GetConformer().SetPositions(coords)
+    return
+
+
 class RDKitPocketIsolator(SimpleBlock):
     name = "rdpocketisolator"
     display_name = "(RDKit) Pocket Isolator"
     inputs = [
-        ("protein", MoleculeData, RDKitMolRep, False),
+        ("protein", MoleculeData, RDKitProtRep, False),
         ("location", LocationData, PocketLocationRep, False)
     ]
     outputs = [
@@ -169,6 +250,13 @@ class RDKitPocketIsolator(SimpleBlock):
 
         # rdprote = Chem.EditableMol(rdprot)
         rdprote = Chem.RWMol(rdprot)
+
+        rdprote.BeginBatchEdit()
+        for atom in rdprot.GetAtoms():
+            atom: Chem.Atom
+            cyx_fix(rdprote, atom, loc)
+        rdprote.CommitBatchEdit()
+
         rdprote.BeginBatchEdit()
         for atom in rdprot.GetAtoms():
             atom: Chem.Atom
@@ -248,27 +336,3 @@ class RDKitPocketIsolator(SimpleBlock):
             terminal.append("C")
         
         return terminal
-    
-class RDKitLigandPocketLocator(SimpleBlock):
-    name = "rdligpoclocator"
-    display_name = "(RDKit) Ligand Pocket Locator"
-    inputs = [
-        ("ligand", MoleculeData, RDKitMolRep, False)
-    ]
-    outputs = [
-        ("location", LocationData, PocketLocationRep, False)
-    ]
-    batch_groups = []
-
-    def __init__(self, radius: float, 
-                 debug = False, save_output = False, num_workers = None):
-        super().__init__(debug, save_output, num_workers)
-        self.radius = radius
-
-    def operate(self, input_dict: Dict[str, Representation]) \
-        -> Dict[str, Representation]:
-
-        rdmol = input_dict[self.input_keys[0]].content
-        main_out_key = self.output_keys[0]
-        loc = PocketLocation("ligand", ligand=rdmol, radius=self.radius)
-        return {main_out_key: self._get_out_rep(main_out_key)(loc)}
