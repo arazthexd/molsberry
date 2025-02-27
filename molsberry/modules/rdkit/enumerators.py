@@ -21,7 +21,7 @@ from ...core import (
 )
 from ...core import SimpleEnumeratorBlock
 
-from .representations import RDKitSmallMolRep
+from .specific_reps import RDKitSmallMolRep
 from .interface import RDKitInterface
 
 class RDKitLigEnumeratorBlock(SimpleEnumeratorBlock, ABC):

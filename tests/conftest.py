@@ -1,5 +1,7 @@
 import pytest
 import os, pathlib, shutil, warnings
+from git import Repo
+import wget
 
 from rdkit import Chem
 from rdkit.Chem import rdDistGeom
@@ -7,66 +9,100 @@ from rdkit.Chem import rdDistGeom
 from openmm.app import PDBFile
 from pdbfixer import PDBFixer
 
-from molsberry.core import PDBPathRep
+from molsberry.core import PDBPathRep, SMILESRep
 from molsberry.modules.rdkit import RDKitMolRep
 
-# Input Small Molecule Samples
+### INPUTS
+# 1) SMALL MOLS
+ZINC_LIG_URLS = [
+    "https://zinc.docking.org/substances/ZINC000000000031.sdf"
+]
+ZINC_LIG_PATHS = [
+    "./tests/data/ZINC/" + url.split("/")[-1] for url in ZINC_LIG_URLS
+]
 
 SMILES = [
-    ("neutr", "CCCO"),
-    ("n+", "CC(=O)OCC(C)C[NH3+]"),
-    ("o-", "CCC=CCC(=O)[O-]"),
-    ("no2", "c1ccc(O)cc1C[N+](=O)[O-]")
+    ("feat_neutr", "CCCO"),
+    ("feat_n+", "CC(=O)OCC(C)C[NH3+]"),
+    ("feat_o-", "CCC=CCC(=O)[O-]"),
+    ("feat_no2", "c1ccc(O)cc1C[N+](=O)[O-]")
 ]
 
-SDF_PATHS = [
-    "./tests/data/processed/kguD_lig.sdf"
+PLREX_LIGS = [
+    ("PR-CA2-5NXG", "./data/PL-REX/001-CA2/structures_pl-rex/5NXG/ligand.sdf"),
+    ("PR-BACE1-5QCR", "./data/PL-REX/006-BACE1/structures_pl-rex/5QCR/ligand.sdf")
 ]
-if os.path.exists("./data/PL-REX"):
-    SDF_PATHS += [
-        "./data/PL-REX/001-CA2/structures_pl-rex/5NXG/ligand.sdf",
-        "./data/PL-REX/006-BACE1/structures_pl-rex/5QCR/ligand.sdf"
-    ]
-else:
-    warnings.warn("PL-REX database not found in data.")
 
-@pytest.fixture(params=SMILES+SDF_PATHS)
-def sample_sm_rdrep(request) -> RDKitMolRep:
-    if isinstance(request.param, tuple):
-        name, smiles = request.param
-        rdmol = Chem.MolFromSmiles(smiles)
-        
-    elif isinstance(request.param, str):
-        name = os.path.basename(request.param).split(".")[0]
-        rdmol = next(Chem.SDMolSupplier(request.param))
+# 2) PROTEINS
+PLREX_PROTS = [
+    ("PR-CA2-5NXG", "./data/PL-REX/001-CA2/structures_pl-rex/5NXG/protein.pdb"),
+    ("PR-BACE1-5QCR", "./data/PL-REX/006-BACE1/structures_pl-rex/5QCR/protein.pdb")
+]
 
+# 3) COMPLEX
+PLREX_COMPLEXES = list(zip(PLREX_LIGS, PLREX_PROTS))
+
+### DOWNLOAD DATASETS
+# 1) PL-REX
+if not os.path.exists("./tests/data/PL-REX"):
+    Repo.clone_from("https://github.com/Honza-R/PL-REX", "./tests/data/PL-REX")
+    with open("./tests/data/PL-REX/.gitignore", "w") as f:
+        f.write("*")
+
+# 2) ZINC
+if not os.path.exists("./tests/data/ZINC"):
+    os.mkdir("./tests/data/ZINC")
+
+for zinc_path, zinc_url in zip(ZINC_LIG_PATHS, ZINC_LIG_URLS):
+    if not os.path.exists(zinc_path):
+        wget.download(zinc_url, zinc_path)
+
+### SET UP FIXTURES
+def param_id_single(param):
+    return param[0]
+
+def param_id_pair(param):
+    return param[0][0]+param[1][0]
+
+def sdf2rdmol(sdf: str, name: str = "unnamed"):
+    rdmol = next(Chem.SDMolSupplier(sdf, removeHs=False))
+    rdmol = Chem.AddHs(rdmol, addCoords=True)
+    rdmol.SetProp("_Name", name)
+    return rdmol
+
+# 1) SMALL MOLS
+@pytest.fixture(params=SMILES, ids=param_id_single)
+def sample_sm_rdrep_from_smi(request) -> RDKitMolRep:
+    name, smiles = request.param
+    rdmol = Chem.MolFromSmiles(smiles)
     rdmol = Chem.AddHs(rdmol)
     rdDistGeom.EmbedMolecule(rdmol, randomSeed=2025)
     rdmol.SetProp("_Name", name)
     rdrep = RDKitMolRep(rdmol)
     return rdrep
 
-# Input Protein Samples
+@pytest.fixture(params=PLREX_LIGS, ids=param_id_single)
+def sample_sm_rdrep_from_plrex(request) -> RDKitMolRep:
+    name, sdf = request.param
+    rdmol = sdf2rdmol(sdf, name)
+    rdrep = RDKitMolRep(rdmol)
+    return rdrep
 
-PROT_PATHS = [
-    pathlib.Path("./tests/data/processed/kguD_prot.pdb").absolute()
-]
+@pytest.fixture(params=ZINC_LIG_PATHS, ids=param_id_single)
+def sample_sm_rdrep_from_zinc(request) -> RDKitMolRep:
+    sdf = request.param
+    name = os.path.basename(sdf).split(".")[0]
+    rdmol = sdf2rdmol(sdf, name)
+    rdrep = RDKitMolRep(rdmol)
+    return rdrep
 
-if os.path.exists("./data/PL-REX"):
-    PROT_PATHS += [
-        pathlib.Path("data/PL-REX/002-HIV-PR/structures_pl-rex/1HSG/protein.pdb").absolute()
-    ]
+# 2) PROTEINS
+@pytest.fixture(params=PLREX_PROTS, ids=param_id_single)
+def sample_prot_pdbrep_from_plrex(request):
+    return PDBPathRep(request.param[1])
 
-@pytest.fixture(params=PROT_PATHS)
-def sample_prot_pdbrep(request):
-    return PDBPathRep(request.param)
-
-# Input Pocket Samples
-
-POC_PATHS = [
-    pathlib.Path("./tests/data/processed/kguD_poc_opt.pdb").absolute()
-]
-
-@pytest.fixture(params=POC_PATHS)
-def sample_poc_pdbrep(request):
-    return PDBPathRep(request.param)
+# 3) COMPLEX
+@pytest.fixture(params=PLREX_COMPLEXES, ids=param_id_pair)
+def sample_complex_rdpdbrep_from_plrex(request):
+    (lname, lsdf), (pname, ppdb) = request.param
+    return RDKitMolRep(sdf2rdmol(lsdf, lname)), PDBPathRep(ppdb)

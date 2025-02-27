@@ -16,7 +16,7 @@ BOND_ORDER_TO_RDBONDTYPE = {
     3.0: Chem.BondType.TRIPLE,
 }
 
-METAL_2P_ATOMIC_NUMS = [12, 25, 26, 27, 29, 30]
+METAL_2P_ATOMIC_NUMS = [12, 20, 25, 26, 27, 29, 30]
 
 def check_atom_and_res_names(atom1, atom2, name1, name2, resname=None):
     if resname is not None:
@@ -37,11 +37,16 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
 
     @staticmethod
     def rdatom2parmedatom(rdatom: Chem.Atom) -> parmed.Atom:
+        pdbinfo = rdatom.GetPDBResidueInfo()
+        if pdbinfo is None:
+            pdbinfo = Chem.AtomPDBResidueInfo()
+            pdbinfo.SetName(rdatom.GetSymbol()+str(rdatom.GetIdx()))
+
         return parmed.Atom(
-            name=rdatom.GetSymbol()+str(rdatom.GetIdx()),
+            name=pdbinfo.GetName(),
             formal_charge=rdatom.GetFormalCharge(),
             mass=rdatom.GetMass(),
-            atomic_number=rdatom.GetAtomicNum()
+            atomic_number=rdatom.GetAtomicNum(),
         )
     
     @classmethod
@@ -180,6 +185,7 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
         stmol = parmed.Structure()
         coords = rdmol.GetConformer().GetPositions()
 
+        resnum2count = dict()
         for i, rdatom in enumerate(rdmol.GetAtoms()):
             rdatom: Chem.Atom
             statom = ParmedMolRep.rdatom2parmedatom(rdatom)
@@ -187,13 +193,16 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
             if pdbinfo is None:
                 stmol.add_atom(statom, resname="UNK", resnum=1)
             else:
+                resnum = pdbinfo.GetResidueNumber()
+                if resnum not in resnum2count:
+                    resnum2count[resnum] = len(resnum2count)+1
+                resnum = resnum2count[resnum]
                 stmol.add_atom(statom, 
                                pdbinfo.GetResidueName(), 
-                               pdbinfo.GetResidueNumber())
+                               resnum)
 
         stmol.coordinates = coords
-
-        # TODO: Kekulize?
+        
         for i, rdbond in enumerate(rdmol.GetBonds()):
             rdbond: Chem.Bond
             at1, at2 = rdbond.GetBeginAtomIdx(), rdbond.GetEndAtomIdx()
@@ -208,7 +217,6 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
             if res_num not in res_number_list:
                 res_number_list.append(res.number)
             else:
-                print(stmol.residues[res_num])
                 atoms = res.atoms
                 [stmol.atoms.remove(atom) for atom in atoms]
                 [stmol.residues[res_num-1].add_atom(atom) for atom in atoms]
@@ -221,7 +229,8 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
         for i, atom in enumerate(stmol.atoms):
             atom: parmed.Atom
             rdatom = Chem.Atom(atom.atomic_number)
-            rdatom.SetFormalCharge(atom.formal_charge)
+            if atom.formal_charge is not None:
+                rdatom.SetFormalCharge(atom.formal_charge)
             pdbinfo = Chem.AtomPDBResidueInfo(
                 atomName=atom.name,
                 serialNumber=i,

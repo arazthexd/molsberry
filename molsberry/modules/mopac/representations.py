@@ -7,6 +7,7 @@ from rdkit import Chem
 from ...core import (
     SMILESRep, PDBPathRep, SDFPathRep, Molecule3DRep
 )
+from ..parmed import ParmedMolRep
 
 from ...modules.rdkit.representations import RDKitMolRep
 
@@ -19,10 +20,10 @@ class MOPACInputMolRep(Molecule3DRep):
                  setpi: List[Tuple[int, int]], 
                  neg_cvb: List[Tuple[int, int]],
                  atom_charges: List[int] = None, 
-                 desciption: str = "some description") -> None:
+                 description: str = "some description") -> None:
         data = {
             "charge": charge,
-            "description": desciption,
+            "description": description,
             "coordinates": coordinates,
             "setpi": setpi,
             "neg_cvb": neg_cvb,
@@ -31,7 +32,7 @@ class MOPACInputMolRep(Molecule3DRep):
         super().__init__(data)
         self.charge = charge
         self.coordinates = coordinates
-        self.description = desciption
+        self.description = description
         self.setpi = setpi
         self.neg_cvb = neg_cvb
         self.atom_charges = atom_charges
@@ -57,8 +58,12 @@ class MOPACInputMolRep(Molecule3DRep):
             setpi=setpi,
             neg_cvb=neg_cvb,
             atom_charges=atom_charges,
-            desciption="Converted from rdkit molecule representation."
+            description="Converted from rdkit molecule representation."
         )
+    
+    @classmethod
+    def from_ParmedMolRep(cls, parmed_rep: ParmedMolRep): # TODO: Check
+        return cls.from_RDKitMolRep(parmed_rep.to_RDKitMolRep())
     
     def to_RDKitMolRep(self):
         raise NotImplementedError() # TODO: Implement this (not urgent)

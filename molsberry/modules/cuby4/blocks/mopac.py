@@ -165,10 +165,10 @@ class Cuby4MOPACEnergyOptimizer(Cuby4GeneralBlock): # TODO: general optimizer
                 if "mopac_setpi" in jc.config:
                     _ = jc.config.pop("mopac_setpi")
 
-            if self.interface_config.cvb == False:
-                    kwds = jc.config["mopac_keywords"].split()
-                    kwds = [kwd for kwd in kwds if "CVB" not in kwd]
-                    jc.config["mopac_keywords"] = " ".join(kwds)
+            if self.interface_config.cvb == False and "mopac_keywords" in jc.config:
+                kwds = jc.config["mopac_keywords"].split()
+                kwds = [kwd for kwd in kwds if "CVB" not in kwd]
+                jc.config["mopac_keywords"] = " ".join(kwds)
 
         with open(jc.config["geometry"], "w") as f:
             f.write(mopac_rep.coordinates)

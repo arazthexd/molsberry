@@ -9,7 +9,7 @@ from .interface import RDKitInterface
 
 from rdkit import Chem
 
-QUERY_METAL_2P = Chem.MolFromSmarts("[#12,#25,#26,#27,#29,#30]")
+QUERY_METAL_2P = Chem.MolFromSmarts("[#12,#20,#25,#26,#27,#29,#30]")
 
 class RDKitMolRep(Molecule3DRep):
     rep_name = "rdmol"
@@ -75,24 +75,3 @@ class RDKitMolRep(Molecule3DRep):
             [conformer.SetAtomPosition(i, loc) for i, loc in enumerate(coords)]
             rdmol.AddConformer(conformer)
 
-class RDKitSmallMolRep(RDKitMolRep, SmallMolRep):
-    def save_rep(self, exless_filename: str):
-        rep_path = exless_filename + ".sdf"
-        writer = Chem.SDWriter(rep_path)
-        writer.write(self.content)
-        writer.close()
-    
-    @classmethod
-    def save_rep_batch(cls, reps: List[Representation], exless_filename: str):
-        rep_path = exless_filename + ".sdf"
-        writer = Chem.SDWriter(rep_path)
-        for rep in reps:
-            writer.write(rep.content)
-        writer.close()
-
-class RDKitProtRep(RDKitMolRep, ProteinRep):
-    rep_name = "rdprot"
-    pass
-
-        
-        
