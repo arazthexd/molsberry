@@ -45,14 +45,14 @@ class OpenMMProteinParameterizer(SimpleBlock):
         # protmodel = PDBFixer(pdbfixer_input_path)
         # protmodel.addMissingHydrogens()
         # protmodel = app.PDBFile(pdbfixer_input_path)
-        protmodel = app.Modeller(topprot, posprot*unit.angstrom)
-        protmodel.addHydrogens(self.forcefield)
+        # protmodel = app.Modeller(topprot, posprot*unit.angstrom)
+        # protmodel.addHydrogens(self.forcefield)
 
-        sysprot = self.forcefield.createSystem(protmodel.topology, 
+        sysprot = self.forcefield.createSystem(topprot, 
                                                rigidWater=False)
-        parammed_prot = parmed.openmm.load_topology(protmodel.topology, 
+        parammed_prot = parmed.openmm.load_topology(topprot, 
                                                     sysprot, 
-                                                    protmodel.positions)
+                                                    posprot)
         for i, atom in enumerate(parammed_prot.atoms):
             atom.formal_charge = stprot.atoms[i].formal_charge
         
