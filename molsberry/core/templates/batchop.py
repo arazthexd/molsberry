@@ -263,8 +263,6 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         for k, v in input_dict.items():
             v: BatchedData | Data
 
-            print(self._get_inp_dtype(k))
-
             if isinstance(v, BatchedData):
                 if isinstance(self._get_inp_dtype(k), list):
                     assert any(isinstance(v.basic_itype, t) 
@@ -283,7 +281,6 @@ class BatchOperatorBlock(PipelineBlock, ABC):
             else:
                 raise TypeError()  
             
-            print(self._get_inp_rep(k))
             try:
                 rep = v.get_representation(self._get_inp_rep(k))
             except:
