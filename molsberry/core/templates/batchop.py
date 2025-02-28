@@ -159,12 +159,11 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         
         # Make sure all batch inputs are batches. if not, make them.
         batch_input = {k: v if isinstance(v, BatchedData) else BatchedData([v])
-                       for k, v in batch_input.items()}
+                    for k, v in batch_input.items()}
         
         if self.debug: print(f"Apply on batch: {batch_input}")
 
         # Define independent and paired groups.
-        # Independents would be combined using `product`.
         indep_groups: List[List[Dict[str, Data | BatchedData]]] = []
         for paired_keys in self.input_batch_paired_keys:
             paired_keys: str | Tuple[str]
@@ -181,8 +180,8 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         
         # Add context to the indep_groups as a single-member iterator
         indep_groups.append([self.context_input])
-    
-        # Create iteratable consisting of all desired combinations of inputs.
+        
+        # Create iterable consisting of all desired combinations of inputs.
         mixed_iter = product(*indep_groups)
         mixed_iter: Iterable[Tuple[Dict[str, Data]]]
 
@@ -190,35 +189,24 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         batch_output: Dict[str, List[Data]] = {
             k: list() for k in self.output_batch_keys}
 
-        # If parallel is on, use mpire for multiprocessing, else just do normal
-        if self.parallel: # TODO: Customize multi processing
-            self.parallel = False
-            with WorkerPool(n_jobs=self.n_workers, shared_objects=self, 
-                            enable_insights=True, use_dill=True) as pool:
-                result_dicts = pool.map(self.potinpmembers_to_result, 
-                                        list(zip(mixed_iter,)))
-            self.parallel = True
-            if self.debug: print(pool.get_insights())
-        else:
-            result_dicts = [self.potinpmembers_to_result(self, pim) 
-                            for pim in mixed_iter]
-        
-        # Iterate over `result_dicts` + check + update batch_output
-        for result_dict, potinpmembers in zip(result_dicts, product(*indep_groups)):
-            if result_dict is None:
-                # Create a potential input
-                pot_input: Dict[str, Data | BatchedData] = dict()
-                for member in potinpmembers:
-                    pot_input.update(member)
-                result_dict = self.apply_on_batch(pot_input, parallel=True)
-            assert set(result_dict.keys()) == set(batch_output.keys())
-            [batch_output[k].append(v) for k, v in result_dict.items()]
+        # Process each mixed input and handle errors
+        for potinpmembers in mixed_iter:
+            try:
+                result_dict = self.potinpmembers_to_result(self, potinpmembers)
+                # Update batch_output with the results
+                for k, v in result_dict.items():
+                    batch_output[k].append(v)
+            except Exception as e:
+                if self.debug:
+                    print(f"Error processing batch {potinpmembers}: {e}")
+                continue  # Skip this batch and continue with the next
         
         # Convert batch output to be of type Dict[str, BatchedData]
         batch_output = {k: BatchedData(vl) 
                         for k, vl in batch_output.items()}
         return batch_output
-    
+
+        
     @staticmethod
     def potinpmembers_to_result(
         block: BatchOperatorBlock, 
@@ -236,22 +224,26 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         # to be an input for `operate` method.
         meets_crit: bool = block.meets_criteria(pot_input)
 
-        # If it does, unwrap the input into representations, run `operate`
-        # and wrap the result from representations into data.
-        if meets_crit:
-            unwrapped_input = block.unwrap_input(pot_input)
-            result_dict: Dict[str, Representation] = \
-                block.operate(unwrapped_input)
-            result_dict: Dict[str, Data] = block.wrap_output(result_dict)
+        # Initialize result_dict
+        result_dict: Dict[str, Data] = {}
 
-        # If not, repeat the process once again on the input until we reach
-        # a potential input that meets the criteria.
-        else:
-            # result_dict = None
-            result_dict: Dict[str, Data] = block.apply_on_batch(pot_input,
-                                                               parallel=True)
+        try:
+            # If it does, unwrap the input into representations, run `operate`
+            # and wrap the result from representations into data.
+            if meets_crit:
+                unwrapped_input = block.unwrap_input(pot_input)
+                result_dict = block.operate(unwrapped_input)
+                result_dict = block.wrap_output(result_dict)
+            else:
+                # If not, repeat the process once again on the input
+                result_dict = block.apply_on_batch(pot_input)
+        except Exception as e:
+            if block.debug:
+                print(f"Error processing potential input {pot_input}: {e}")
+            return {}  # Return an empty dict on error
 
         return result_dict
+
 
     def unwrap_input(self, 
                      input_dict: Dict[str, Data | BatchedData]) -> \
