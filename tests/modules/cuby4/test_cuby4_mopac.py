@@ -19,7 +19,8 @@ from molsberry.modules.cuby4 import (
     Cuby4MOPACInterfaceConfig
 )
 from molsberry.modules.parmed import (
-    ParmedProteinPocketIsolator
+    ParmedProteinPocketIsolator,
+    ParmedMoleculeCombiner
 )
 
 BASE_DIR = "./test_out"
@@ -125,6 +126,37 @@ def pipeline_prot_isol_energy() -> Pipeline:
         
     return EnergyPipeline(base_dir=BASE_DIR)
 
+@pytest.fixture(ids=["default-pm6-mozyme-setcharge"])
+def pipeline_ligprot_isol_comb_energy() -> Pipeline:
+
+    class EnergyPipeline(Pipeline):
+        name = "mopac_energy"
+        display_name = "Pocket Isolation/MOPAC Energy Pipeline"
+        def build(self):
+            self.add_block(InputBlock(["proteins", "ligands"]), "input")
+
+            self.add_block(RDKitLigandPocketLocator(8), "pocloc")
+            self.add_connection("input", "ligands", "pocloc", "ligand")
+
+            self.add_block(ParmedProteinPocketIsolator(), "pociso")
+            self.add_connection("input", "proteins", "pociso", "protein")
+            self.add_connection("pocloc", "location", "pociso", "location")
+
+            self.add_block(ParmedMoleculeCombiner(2), "comb")
+            self.add_connection("input", "ligands", "comb", "molecule_1")
+            self.add_connection("pociso", "pocket", "comb", "molecule_2")
+
+            iconf = Cuby4MOPACInterfaceConfig(method="pm6", 
+                                              mozyme=True, 
+                                              setcharges=True)
+            self.add_block(Cuby4MOPACEnergyCalculator(iconf), "mopacen")
+            self.add_connection("comb", "combined", "mopacen", "molecules")
+
+            self.add_block(OutputBlock(["energy"]), "output")
+            self.add_connection("mopacen", "energy", "output", "energy")
+        
+    return EnergyPipeline(base_dir=BASE_DIR)
+
 
 ##########################################################
 ##                         Tests                        ##
@@ -197,22 +229,21 @@ def test_cuby4_mopac_pociso_energy_from_plrex(
 
     print("Final Poc Energy:", out["energy"].get_representation_content()[0])
 
+def test_cuby4_mopac_ligprotcomp_energy_from_plrex(
+    pipeline_ligprot_isol_comb_energy: Pipeline, 
+    sample_complex_rdpdbrep_from_plrex):
 
-# def test_cuby4_mopac_energy_block_poc(pipeline_sm_energy: Pipeline, 
-#                                       sample_poc_pdbrep: PDBPathRep):
-#     try:
-#         out = pipeline_sm_energy.execute(molecules=MoleculeData(sample_poc_pdbrep))
+    lig, prot = sample_complex_rdpdbrep_from_plrex
+
+    try:
+        out = pipeline_ligprot_isol_comb_energy.execute(
+            ligands=MoleculeData(lig),
+            proteins=MoleculeData(prot)
+        )
     
-#     except ValueError:
-#         name = os.path.basename(sample_poc_pdbrep.content)
-#         save_result_for_later_inspection(name)
-#         raise ValueError()
-    
-#     print("Final Poc Energy:", out["energy"].get_representation_content()[0])
+    except ValueError as e:
+        name = "last_poc_energy"
+        save_result_for_later_inspection(name)
+        raise e
 
-# def test_cuby4_amber_optimize_block_sm(optimize_pipeline_sm: Pipeline,
-#                                        sample_sm_rdrep: RDKitMolRep):
-#     out = optimize_pipeline_sm.execute(molecules=MoleculeData(sample_sm_rdrep))
-#     print("Final SM Energy:", out["energy"].get_representation_content()[0])
-
-# TODO: Write test_cuby4_amber_optimize_block_prot
+    print("Final Comp Energy:", out["energy"].get_representation_content()[0])

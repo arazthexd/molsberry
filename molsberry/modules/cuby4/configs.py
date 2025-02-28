@@ -41,9 +41,13 @@ class Cuby4Config:
 
 class Cuby4InterfaceConfig(Cuby4Config):
     def __init__(self, 
-                 interface: str = None):
+                 interface: str = None,
+                 n_threads: int = 1):
         super().__init__()
+        self.n_threads = n_threads
+
         self.config["interface"] = interface
+        self.config["cuby_threads"] = n_threads
 
 class Cuby4CompositeInterfaceConfig(Cuby4InterfaceConfig):
     pass
@@ -61,7 +65,14 @@ class Cuby4MergedConfig(Cuby4Config):
         dicts = [c.config for c in configs]
         merged = OrderedDict()
         for d in dicts:
-            merged.update(d)
+            for k, v in d.items():
+                if k not in merged:
+                    merged[k] = v
+                elif isinstance(merged[k], list):
+                    if isinstance(v, list): merged[k] += v # TODO What if not?
+                elif isinstance(merged[k], dict):
+                    if isinstance(v, dict): merged[k].update(v)
+
 
         # TODO for mopac keywords
         mopac_kwds = ""
@@ -127,14 +138,6 @@ class MOPACConfigUtils:
         if not hasattr(self, "config"):
             self.config = {}
         self.config["mopac_keywords"] = " ".join(self.keywords)
-    
-    # def _mopac_to_confdict(self, mop_mol: MOPACInputMolRep) -> dict:
-    #     conf_dict = {
-    #         "geometry": None,
-    #         "charge": None,
-    #         "multiplicity": None
-    #     }
-
 
 class Cuby4MOPACInterfaceConfig(Cuby4InterfaceConfig, MOPACConfigUtils):
     def __init__(self,
@@ -144,9 +147,10 @@ class Cuby4MOPACInterfaceConfig(Cuby4InterfaceConfig, MOPACConfigUtils):
                  setpi: bool = False,
                  setcharges: bool = False,
                  cvb: bool = False,
-                 keywords: str | List[str] = []):
+                 keywords: str | List[str] = [],
+                 n_threads: int = 1):
         
-        super().__init__(interface="mopac")
+        super().__init__(interface="mopac", n_threads=n_threads)
         if exe == "auto":
             exe = which("mopac")
         if isinstance(mozyme, str):
@@ -218,12 +222,13 @@ import shutil, os
 
 class Cuby4AMBERInterfaceConfig(Cuby4InterfaceConfig, MOPACConfigUtils):
     def __init__(self,
-                 home: str = "auto"):
+                 home: str = "auto",
+                 n_threads: int = 1):
 
         if home == "auto":
             home = os.path.dirname(os.path.dirname(shutil.which("sander")))
         
-        super().__init__(interface="amber")
+        super().__init__(interface="amber", n_threads=n_threads)
         self.home = home
 
         self.config["amber_amberhome"] = home
@@ -237,9 +242,10 @@ class Cuby4QMMMInterfaceConfig(Cuby4InterfaceConfig):
                  qm_config: Cuby4Config,
                  mm_config: Cuby4Config, 
                  embedding: str = "mechanical",
-                 grad_on_point_charges: bool = False):
+                 grad_on_point_charges: bool = False,
+                 n_threads: int = 1):
         
-        super().__init__(interface="qmmm")
+        super().__init__(interface="qmmm", n_threads=n_threads)
         
         self.qm_config = qm_config
         self.mm_config = mm_config
