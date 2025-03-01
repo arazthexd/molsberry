@@ -86,11 +86,21 @@ class ParmedProteinPocketIsolator(SimpleBlock):
         prot = input_dict["protein"].content
         loc = input_dict["location"].content
         poc = self.isolate(prot, loc)
+        poc.save(generate_path_in_dir(6, self.base_dir, "_pocisoout.pdb"))
         return {"pocket": ParmedMolRep(poc)}
 
     def fix_cyx(self, prot: parmed.Structure, loc: PocketLocation):
         cyx_residues = [res for res in prot.residues 
                         if res.name.strip() == "CYX"]
+        for res in prot.residues:
+            if res.name.strip() != "CYS":
+                continue
+            at_s = next(at for at in res.atoms if at.element_name == "S")
+            has_nei_s = any(at.element_name=="S" for at in at_s.bond_partners)
+            if not has_nei_s:
+                continue
+            res.name = "CYX"
+            cyx_residues.append(res)
         
         for cyx_res in cyx_residues:
             cyx_res: parmed.Residue

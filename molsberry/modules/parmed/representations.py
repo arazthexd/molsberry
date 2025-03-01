@@ -133,11 +133,40 @@ class ParmedMolRep(MoleculeRep): # TODO: Parameterized vs NonParama
                 bond.order = 2.0
 
             # ND1=CE1 and CD2=CG for HIE, HIS, HIP
-            if res1.name in ["HIE", "HIS", "HIP"]:
+            if res1.name in ["HIE", "HIP"]:
                 if check_atom_and_res_names(atom1, atom2, "ND1", "CE1"):
                     bond.order = 2.0
                 if check_atom_and_res_names(atom1, atom2, "CD2", "CG"):
                     bond.order = 2.0
+
+            if res1.name == "HIS":
+                if check_atom_and_res_names(atom1, atom2, "CD2", "CG"):
+                    bond.order = 2.0
+
+                nd1 = next(a for a in res1.atoms if a.name == "ND1")
+                ne2 = next(a for a in res1.atoms if a.name == "NE2")
+
+                nd1_has_h = any(bp.atomic_number==1 for bp in nd1.bond_partners)
+                ne2_has_h = any(bp.atomic_number==1 for bp in ne2.bond_partners)
+
+                if nd1_has_h and ne2_has_h:
+                    res1.name = "HIP"
+                    if check_atom_and_res_names(atom1, atom2, "ND1", "CE1"):
+                        bond.order = 2.0
+                
+                elif nd1_has_h:
+                    res1.name = "HID"
+                    if check_atom_and_res_names(atom1, atom2, "NE2", "CE1"):
+                        bond.order = 2.0
+                
+                elif ne2_has_h:
+                    res1.name = "HIE"
+                    if check_atom_and_res_names(atom1, atom2, "ND1", "CE1"):
+                        bond.order = 2.0
+
+                else:
+                    if check_atom_and_res_names(atom1, atom2, "ND1", "CE1"):
+                        bond.order = 2.0
             
             # NE2=CE1 and CD2=CG for HID (Histidine with delta nitrogen protonated)
             if check_atom_and_res_names(atom1, atom2, "NE2", "CE1", "HID"):
