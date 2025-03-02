@@ -75,7 +75,10 @@ def pipeline_sm_param_energy(amber_energy_block, openff_parameterizer_block) \
             self.add_block(OutputBlock(["energy"]), "output")
             self.add_connection("amben", "energy", "output", "energy")
         
-    return EnergyPipeline(base_dir=BASE_DIR)
+    pipeline = EnergyPipeline(base_dir=BASE_DIR)
+    for block in pipeline._blocks:
+        block.skip_errors = False
+    return pipeline
 
 @pytest.fixture()
 def pipeline_prot_param_energy(amber_energy_block, openmm_parameterizer_block) \
@@ -96,7 +99,10 @@ def pipeline_prot_param_energy(amber_energy_block, openmm_parameterizer_block) \
             self.add_block(OutputBlock(["energy"]), "output")
             self.add_connection("amben", "energy", "output", "energy")
         
-    return EnergyPipeline(base_dir=BASE_DIR)
+    pipeline = EnergyPipeline(base_dir=BASE_DIR)
+    for block in pipeline._blocks:
+        block.skip_errors = False
+    return pipeline
 
 @pytest.fixture()
 def pipeline_prot_isol_param_energy(amber_energy_block, 
@@ -124,7 +130,10 @@ def pipeline_prot_isol_param_energy(amber_energy_block,
             self.add_block(OutputBlock(["energy"]), "output")
             self.add_connection("amben", "energy", "output", "energy")
         
-    return EnergyPipeline(base_dir=BASE_DIR)
+    pipeline = EnergyPipeline(base_dir=BASE_DIR)
+    for block in pipeline._blocks:
+        block.skip_errors = False
+    return pipeline
 
 @pytest.fixture()
 def pipeline_sm_param_optimize(amber_optimize_block, 
@@ -145,7 +154,10 @@ def pipeline_sm_param_optimize(amber_optimize_block,
             self.add_block(OutputBlock(["energy"]), "output")
             self.add_connection("ambopt", "energy", "output", "energy")
         
-    return OptimizePipeline(base_dir=BASE_DIR)
+    pipeline = OptimizePipeline(base_dir=BASE_DIR)
+    for block in pipeline._blocks:
+        block.skip_errors = False
+    return pipeline
 
 @pytest.fixture()
 def pipeline_prot_isol_param_optimize(amber_optimize_block, 
@@ -173,7 +185,10 @@ def pipeline_prot_isol_param_optimize(amber_optimize_block,
             self.add_block(OutputBlock(["energy"]), "output")
             self.add_connection("ambopt", "energy", "output", "energy")
         
-    return OptimizePipeline(base_dir=BASE_DIR)
+    pipeline = OptimizePipeline(base_dir=BASE_DIR)
+    for block in pipeline._blocks:
+        block.skip_errors = False
+    return pipeline
 
 @pytest.fixture()
 def pipeline_ligprot_pociso_param_comb_mcoptimize(
@@ -207,7 +222,10 @@ def pipeline_ligprot_pociso_param_comb_mcoptimize(
             self.add_block(OutputBlock(["energy"]), "output")
             self.add_connection("ambopt", "energy", "output", "energy")
 
-    return OptimizePipeline(base_dir=BASE_DIR)
+    pipeline = OptimizePipeline(base_dir=BASE_DIR)
+    for block in pipeline._blocks:
+        block.skip_errors = False
+    return pipeline
 
 ##########################################################
 ##                         Tests                        ##

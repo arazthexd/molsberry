@@ -23,6 +23,7 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         else:
             self.parallel = True
             self.n_workers = num_workers
+        self.skip_errors = True
 
     @property
     @abstractmethod
@@ -200,7 +201,8 @@ class BatchOperatorBlock(PipelineBlock, ABC):
             self.parallel = True
             if self.debug: print(pool.get_insights())
         else:
-            result_dicts = [self.potinpmembers_to_result(self, pim) 
+            result_dicts = [self.potinpmembers_to_result(self, pim, 
+                                                         skip_errors=self.skip_errors) 
                             for pim in mixed_iter]
         
         # Iterate over `result_dicts` + check + update batch_output
@@ -222,7 +224,8 @@ class BatchOperatorBlock(PipelineBlock, ABC):
     @staticmethod
     def potinpmembers_to_result(
         block: BatchOperatorBlock, 
-        potinpmembers: Tuple[Dict[str, Data | BatchedData]]) \
+        potinpmembers: Tuple[Dict[str, Data | BatchedData]],
+        skip_errors: bool = True) \
             -> Dict[str, Data]:
         
         # Create a potential input
@@ -258,7 +261,10 @@ class BatchOperatorBlock(PipelineBlock, ABC):
                 except Exception as e:
                     result_dict = {key: block._get_out_rep(key)(e) 
                                 for key in block.output_batch_keys}
-                    print(e)
+                    if skip_errors:
+                        print(e)
+                    else:
+                        raise e
 
             result_dict: Dict[str, Data] = block.wrap_output(result_dict)
 

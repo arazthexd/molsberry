@@ -89,7 +89,10 @@ def pipeline_ligpoc_mopamber_energy(qmmm_mopamber_energy_block) -> Pipeline:
             self.add_block(OutputBlock(["energy"]), "output")
             self.add_connection("mopamberen", "energy", "output", "energy")
         
-    return EnergyPipeline(base_dir=BASE_DIR)
+    pipeline = EnergyPipeline(base_dir=BASE_DIR)
+    for block in pipeline._blocks:
+        block.skip_errors = False
+    return pipeline
 
 @pytest.fixture()
 def pipeline_ligpoc_mopamber_optimize(qmmm_mopamber_optimize_block) -> Pipeline:
@@ -120,7 +123,10 @@ def pipeline_ligpoc_mopamber_optimize(qmmm_mopamber_optimize_block) -> Pipeline:
             self.add_block(OutputBlock(["energy"]), "output")
             self.add_connection("mopamberopt", "energy", "output", "energy")
         
-    return OptimizePipeline(base_dir=BASE_DIR)
+    pipeline = OptimizePipeline(base_dir=BASE_DIR)
+    for block in pipeline._blocks:
+        block.skip_errors = False
+    return pipeline
 
 ##########################################################
 ##                         Tests                        ##

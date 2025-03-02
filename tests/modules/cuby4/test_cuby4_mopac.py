@@ -80,7 +80,10 @@ def pipeline_sm_energy(mopac_energy_block) -> Pipeline:
             self.add_block(OutputBlock(["energy"]), "output")
             self.add_connection("mopacen", "energy", "output", "energy")
         
-    return EnergyPipeline(base_dir=BASE_DIR)
+    pipeline = EnergyPipeline(base_dir=BASE_DIR)
+    for block in pipeline._blocks:
+        block.skip_errors = False
+    return pipeline
 
 @pytest.fixture()
 def pipeline_sm_optimize(mopac_optimize_block) -> Pipeline:
@@ -97,7 +100,10 @@ def pipeline_sm_optimize(mopac_optimize_block) -> Pipeline:
             self.add_block(OutputBlock(["energy"]), "output")
             self.add_connection("mopacopt", "energy", "output", "energy")
         
-    return OptimizePipeline(base_dir=BASE_DIR)
+    pipeline = OptimizePipeline(base_dir=BASE_DIR)
+    for block in pipeline._blocks:
+        block.skip_errors = False
+    return pipeline
 
 @pytest.fixture(ids=["default-pm6-mozyme-setcharge"])
 def pipeline_prot_isol_energy() -> Pipeline:
@@ -124,7 +130,10 @@ def pipeline_prot_isol_energy() -> Pipeline:
             self.add_block(OutputBlock(["energy"]), "output")
             self.add_connection("mopacen", "energy", "output", "energy")
         
-    return EnergyPipeline(base_dir=BASE_DIR)
+    pipeline = EnergyPipeline(base_dir=BASE_DIR)
+    for block in pipeline._blocks:
+        block.skip_errors = False
+    return pipeline
 
 @pytest.fixture(ids=["default-pm6-mozyme-setcharge"])
 def pipeline_ligprot_isol_comb_energy() -> Pipeline:
@@ -155,7 +164,10 @@ def pipeline_ligprot_isol_comb_energy() -> Pipeline:
             self.add_block(OutputBlock(["energy"]), "output")
             self.add_connection("mopacen", "energy", "output", "energy")
         
-    return EnergyPipeline(base_dir=BASE_DIR)
+    pipeline = EnergyPipeline(base_dir=BASE_DIR)
+    for block in pipeline._blocks:
+        block.skip_errors = False
+    return pipeline
 
 
 ##########################################################
