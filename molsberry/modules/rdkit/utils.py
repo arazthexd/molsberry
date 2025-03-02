@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -9,6 +9,7 @@ from ...core import (
     PDBPathRep, StringRep, SDFPathRep,
     Representation, generate_path_in_dir,
 )
+
 from ..rdkit import RDKitMolRep, RDKitSmallMolRep
 
 class RDKitProteinLigandSplitter(SimpleBlock):

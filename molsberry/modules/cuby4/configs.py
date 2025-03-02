@@ -24,7 +24,7 @@ class Cuby4Config:
             if isinstance(v, bool):
                 v = {True: "yes", False: "no"}.get(v)
 
-            if v.__class__ not in [bool, str, dict]:
+            if v.__class__ not in [bool, str, dict, OrderedDict]:
                 v = str(v)
 
             if isinstance(v, str):
@@ -34,16 +34,20 @@ class Cuby4Config:
                 cstring += f"{indent}{k}:\n"
                 indent += "  "
                 cstring += cls.config_to_string(v, indent)
-                print(cls.config_to_string(v, indent))
+                # print(cls.config_to_string(v, indent))
                 indent = indent[:-2]
 
         return cstring
 
 class Cuby4InterfaceConfig(Cuby4Config):
     def __init__(self, 
-                 interface: str = None):
+                 interface: str = None,
+                 n_threads: int = 1):
         super().__init__()
+        self.n_threads = n_threads
+
         self.config["interface"] = interface
+        self.config["cuby_threads"] = n_threads
 
 class Cuby4CompositeInterfaceConfig(Cuby4InterfaceConfig):
     pass
@@ -61,7 +65,23 @@ class Cuby4MergedConfig(Cuby4Config):
         dicts = [c.config for c in configs]
         merged = OrderedDict()
         for d in dicts:
-            merged.update(d)
+            for k, v in d.items():
+                if k not in merged:
+                    merged[k] = v
+                elif isinstance(merged[k], list):
+                    if isinstance(v, list): merged[k] += v # TODO What if not?
+                elif isinstance(merged[k], dict):
+                    if isinstance(v, dict): merged[k].update(v)
+
+
+        # TODO for mopac keywords
+        mopac_kwds = ""
+        for d in dicts:
+            if "mopac_keywords" in d:
+                mopac_kwds = " ".join([mopac_kwds, d["mopac_keywords"]])
+        if len(mopac_kwds) > 0:
+            merged["mopac_keywords"] = mopac_kwds
+
         return cls(merged)
 
 #####################################################################
@@ -91,12 +111,14 @@ class Cuby4OptimizeJobConfig(Cuby4EnergyJobConfig):
                  geometry: str, 
                  charge: int = 0, 
                  mult: int = 1,
+                 maxcycles: int = 7,
                  restart_file: str = None):
         super().__init__(geometry, charge, mult)
         self.job = "optimize"
         self.config["job"] = "optimize" # TODO
         self.restart_file = restart_file
         self.config["restart_file"] = restart_file
+        self.config['maxcycles'] = maxcycles
 
 #####################################################################
 ##                          MOPAC Classes                          ##
@@ -116,23 +138,19 @@ class MOPACConfigUtils:
         if not hasattr(self, "config"):
             self.config = {}
         self.config["mopac_keywords"] = " ".join(self.keywords)
-    
-    # def _mopac_to_confdict(self, mop_mol: MOPACInputMolRep) -> dict:
-    #     conf_dict = {
-    #         "geometry": None,
-    #         "charge": None,
-    #         "multiplicity": None
-    #     }
-
 
 class Cuby4MOPACInterfaceConfig(Cuby4InterfaceConfig, MOPACConfigUtils):
     def __init__(self,
                  exe: str = "auto",
                  method = "pm6",
                  mozyme: str | bool = False,
-                 keywords: str | List[str] = []):
+                 setpi: bool = False,
+                 setcharges: bool = False,
+                 cvb: bool = False,
+                 keywords: str | List[str] = [],
+                 n_threads: int = 1):
         
-        super().__init__(interface="mopac")
+        super().__init__(interface="mopac", n_threads=n_threads)
         if exe == "auto":
             exe = which("mopac")
         if isinstance(mozyme, str):
@@ -143,6 +161,9 @@ class Cuby4MOPACInterfaceConfig(Cuby4InterfaceConfig, MOPACConfigUtils):
         self.exe = exe
         self.method = method
         self.mozyme = mozyme
+        self.setpi = setpi
+        self.setcharges = setcharges
+        self.cvb = cvb
 
         self._update_c4mopac_keywords(keywords)
 
@@ -181,6 +202,9 @@ class MOPACMozymeConfig(Cuby4Config, MOPACConfigUtils):
     
     def compile_cvb(self):
 
+        if len(self.neg_cvb) == 0:
+            return
+        
         cvb_str = "CVB("
         for aid1, aid2 in self.neg_cvb:
             if cvb_str != "CVB(":
@@ -190,82 +214,54 @@ class MOPACMozymeConfig(Cuby4Config, MOPACConfigUtils):
 
         self._update_c4mopac_keywords([cvb_str])
 
-# class Cuby4MOPACJobConfig(Cuby4JobConfig, MOPACConfigUtils):
-    
-#     @classmethod
-#     def from_mopac_mol(cls, mopac_mol: MOPACInputMolRep, mozyme: bool = False):
-#         if mozyme:
-#             conf = Cuby4MergedConfig.from_config_list([
-#                 Cuby4()
-#             ])
+#####################################################################
+##                          AMBER Classes                          ##
+#####################################################################
 
-# from rdkit import Chem
-# from rdkit.Chem import rdDistGeom, rdForceFieldHelpers
-# import os
+import shutil, os
 
-# from abc import ABC, abstractmethod
-# import pathlib, shutil, subprocess, os, glob
-# import string
-# import random
-# from typing import List, Tuple
+class Cuby4AMBERInterfaceConfig(Cuby4InterfaceConfig, MOPACConfigUtils):
+    def __init__(self,
+                 home: str = "auto",
+                 n_threads: int = 1):
 
-# from rdkit import Chem 
-# from rdkit.Geometry import Point3D
-
-# from molsberry.core import generate_name_in_dir
-
-# m = Chem.MolFromSmiles("CCCOC(=O)[O-]")
-# m = Chem.AddHs(m)
-# rdDistGeom.EmbedMolecule(m, useRandomCoords=True, randomSeed=-1)
-# rdForceFieldHelpers.MMFFOptimizeMolecule(m)
-# mp = os.path.join(os.path.dirname(__file__), "test_mol.pdb")
-# Chem.MolToPDBFile(m, mp)
-
-# c = Cuby4MergedConfig.from_config_list([
-#     Cuby4EnergyJobConfig(mp, charge=-1, mult=1),
-#     MOPACMozymeConfig(setpi=[], neg_cvb=[])
-# ])
-
-# class Cuby4Interface:
-#     def __init__(self, interface_config: Cuby4InterfaceConfig,
-#                  cuby4_exe: str = "auto", work_dir: str = "."):
-#         if cuby4_exe == "auto":
-#             self.path = shutil.which("cuby4")
-#         else:
-#             self.path = str(pathlib.Path(cuby4_exe).absolute())
-#         self.work_dir = str(pathlib.Path(work_dir).absolute())
-#         self.interface_config = interface_config
-    
-#     def run(self, config: Cuby4Config, job_name: str = None):
+        if home == "auto":
+            home = os.path.dirname(os.path.dirname(shutil.which("sander")))
         
-#         if job_name is None:
-#             job_name = generate_name_in_dir(6, self.work_dir, ".yml")
-#         config_path = os.path.join(self.work_dir, f"{job_name}_conf.yml")
-#         config_path = str(pathlib.Path(config_path).absolute())
-#         config_final = Cuby4MergedConfig.from_config_list([self.interface_config,
-#                                                            config])
-#         config_str = config_final.get_string()
-#         with open(config_path, "w") as f:
-#             f.write(config_str)
+        super().__init__(interface="amber", n_threads=n_threads)
+        self.home = home
+
+        self.config["amber_amberhome"] = home
+
+#####################################################################
+##                          QMMM Classes                           ##
+#####################################################################
+
+class Cuby4QMMMInterfaceConfig(Cuby4InterfaceConfig):
+    def __init__(self,
+                 qm_config: Cuby4Config,
+                 mm_config: Cuby4Config, 
+                 embedding: str = "mechanical",
+                 grad_on_point_charges: bool = False,
+                 n_threads: int = 1):
         
-#         prev_path = os.curdir
-#         os.chdir(self.work_dir)
-
-#         for filename in glob.glob("job_*"):
-#             shutil.rmtree(filename) 
-#         output = subprocess.run([self.path, config_path], capture_output=True)
+        super().__init__(interface="qmmm", n_threads=n_threads)
         
-#         os.chdir(prev_path)
+        self.qm_config = qm_config
+        self.mm_config = mm_config
+        
+        if isinstance(grad_on_point_charges, str):
+            grad_on_point_charges = {"no": False, 
+                                     "yes": True}.get(grad_on_point_charges)
+        self.grad_on_point_charges = grad_on_point_charges
+        self.embedding = embedding
 
-#         if output.returncode != 0:
-#             print(output)
-#             raise ValueError()
-#         return output.stdout.decode()
-    
-# interface = Cuby4Interface(
-#     Cuby4MOPACInterfaceConfig(mozyme=True), work_dir=os.path.dirname(__file__)
-# )
-# print(interface.run(c))
+        self.config["calculation_qm"] = qm_config.config
+        self.config["calculation_mm"] = mm_config.config
+        self.config["qmmm_embedding"] = embedding
+        self.config["gradient_on_point_charges"] = {True: "yes", 
+                                                    False: "no"}.get(grad_on_point_charges)
 
-# # with open(os.path.join(os.path.dirname(__file__), "c4c.yml"), "w") as f:
-# #     f.write(c.get_string())
+
+
+

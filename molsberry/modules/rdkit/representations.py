@@ -9,6 +9,8 @@ from .interface import RDKitInterface
 
 from rdkit import Chem
 
+QUERY_METAL_2P = Chem.MolFromSmarts("[#12,#20,#25,#26,#27,#29,#30]")
+
 class RDKitMolRep(Molecule3DRep):
     rep_name = "rdmol"
 
@@ -37,6 +39,15 @@ class RDKitMolRep(Molecule3DRep):
             atom: Chem.Atom = mol.GetAtomWithIdx(atom)
             if atom.GetPDBResidueInfo().GetIsHeteroAtom() == False:
                 atom.SetFormalCharge(-1)
+
+        for atom, in mol.GetSubstructMatches(QUERY_METAL_2P):
+            atom: Chem.Atom = mol.GetAtomWithIdx(atom)
+            if atom.GetFormalCharge() == 0:
+                print(f"WARNING: A metal atom from pdb file had unspecified charge. 2+ will be used, unless charge specified in the file.")
+                print("file:", pdb_path)
+                print("atom idx:", atom.GetIdx())
+                atom.SetFormalCharge(2)
+
         return cls(mol=mol)
     
     @classmethod
@@ -64,24 +75,3 @@ class RDKitMolRep(Molecule3DRep):
             [conformer.SetAtomPosition(i, loc) for i, loc in enumerate(coords)]
             rdmol.AddConformer(conformer)
 
-class RDKitSmallMolRep(RDKitMolRep, SmallMolRep):
-    def save_rep(self, exless_filename: str):
-        rep_path = exless_filename + ".sdf"
-        writer = Chem.SDWriter(rep_path)
-        writer.write(self.content)
-        writer.close()
-    
-    @classmethod
-    def save_rep_batch(cls, reps: List[Representation], exless_filename: str):
-        rep_path = exless_filename + ".sdf"
-        writer = Chem.SDWriter(rep_path)
-        for rep in reps:
-            writer.write(rep.content)
-        writer.close()
-
-class RDKitProtRep(RDKitMolRep, ProteinRep):
-    rep_name = "rdprot"
-    pass
-
-        
-        

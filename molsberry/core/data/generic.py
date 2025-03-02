@@ -12,14 +12,7 @@ class FloatRep(Representation):
     rep_name = 'FloatRepresentation'
 
     def __init__(self, num):
-        if not num:
-            raise ValueError
-        elif not isinstance(num, (int, float)):
-            try:
-                num = float(num)
-            except:
-                raise TypeError
-        self.content = num
+        super().__init__(num)
 
     @classmethod
     def from_UnspecifiedRep(cls, num:UnspecifiedRep):

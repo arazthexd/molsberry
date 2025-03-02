@@ -114,6 +114,9 @@ class PipelineBlock(ABC):
     
     @property
     def base_dir(self) -> str:
+        if self._parent is None:
+            print("Warning: base_dir is set to current directory as no parent was found.")
+            return pathlib.Path(os.curdir).absolute()
         return self._parent.base_dir
     
     @abstractmethod
@@ -301,7 +304,9 @@ class Pipeline(PipelineBlock, ABC):
         if not os.path.exists(base_dir):
             os.mkdir(base_dir)
         
-        self._base_dir = pathlib.Path(base_dir) # TODO: Not use pathlib?
+        self._base_dir = pathlib.Path(base_dir).absolute() # TODO: Not use pathlib?
+        print("pipeline is being initiated", self._base_dir)
+
         self._blocks: Dict[str, PipelineBlock | InputBlock | OutputBlock] = {}
         self._connections: Dict[str, _Connection] = dict()
 

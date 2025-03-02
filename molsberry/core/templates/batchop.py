@@ -240,8 +240,26 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         # and wrap the result from representations into data.
         if meets_crit:
             unwrapped_input = block.unwrap_input(pot_input)
-            result_dict: Dict[str, Representation] = \
-                block.operate(unwrapped_input)
+
+            to_try: bool = True
+            for inpkey, inprep in unwrapped_input.items():
+                if isinstance(inprep.content, Exception):
+                    e = inprep.content
+                    result_dict = {key: block._get_out_rep(key)(e) 
+                                   for key in block.output_batch_keys}
+                    to_try = False
+                    break
+
+            if to_try:
+
+                try:
+                    result_dict: Dict[str, Representation] = \
+                        block.operate(unwrapped_input)
+                except Exception as e:
+                    result_dict = {key: block._get_out_rep(key)(e) 
+                                for key in block.output_batch_keys}
+                    print(e)
+
             result_dict: Dict[str, Data] = block.wrap_output(result_dict)
 
         # If not, repeat the process once again on the input until we reach
@@ -249,7 +267,7 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         else:
             # result_dict = None
             result_dict: Dict[str, Data] = block.apply_on_batch(pot_input,
-                                                               parallel=True)
+                                                                parallel=True)
 
         return result_dict
 
@@ -262,8 +280,6 @@ class BatchOperatorBlock(PipelineBlock, ABC):
         unwrapped_dict: Dict[str, Representation | List[Representation]] = {}
         for k, v in input_dict.items():
             v: BatchedData | Data
-
-            print(self._get_inp_dtype(k))
 
             if isinstance(v, BatchedData):
                 if isinstance(self._get_inp_dtype(k), list):
@@ -283,7 +299,6 @@ class BatchOperatorBlock(PipelineBlock, ABC):
             else:
                 raise TypeError()  
             
-            print(self._get_inp_rep(k))
             try:
                 rep = v.get_representation(self._get_inp_rep(k))
             except:

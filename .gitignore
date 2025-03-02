@@ -5,3 +5,4 @@ output/
 tmp/
 __pycache__/
 ZPlayZ
+test_out/
