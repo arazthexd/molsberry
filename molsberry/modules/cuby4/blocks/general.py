@@ -120,7 +120,7 @@ class Cuby4GeneralEnergyOptimizer(Cuby4GeneralBlock):
                           full_config: Cuby4Config) -> Dict[str, Representation]:
         energy = float(cuby4_out.split("Energy:")[-1].split()[0])
 
-        parmed_rep: ParmedMolRep = input_dict[self.input_keys[0]]
+        parmed_rep: ParmedMolRep = input_dict["molecules"]
         structure: parmed.Structure = parmed_rep.content
         structure = structure.copy(parmed.Structure) # TODO: works?
         restart: parmed.Structure = parmed.load_file(
@@ -129,5 +129,5 @@ class Cuby4GeneralEnergyOptimizer(Cuby4GeneralBlock):
         parmed_rep = ParmedMolRep(structure)
         return {
             "molecules": parmed_rep,
-            "energy": self._get_out_rep("energy")(energy)
+            "energy": FloatRep(energy)
         }

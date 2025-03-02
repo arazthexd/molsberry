@@ -127,7 +127,7 @@ class Cuby4AMBEREnergyOptimizer(Cuby4GeneralEnergyOptimizer):
         )
 
     def generate_job_config(self, input_dict):
-        omm_rep: ParmedMolRep = input_dict[self.input_keys[0]]
+        omm_rep: ParmedMolRep = input_dict["molecules"]
         _, geometry, prmtop = _AMBER_Utils.parmed_to_parms(omm_rep, 
                                                            self.base_dir)
 
@@ -143,3 +143,64 @@ class Cuby4AMBEREnergyOptimizer(Cuby4GeneralEnergyOptimizer):
         config.config.update(mol_specifics)
 
         return config
+    
+class Cuby4AMBERMultiComponentEnergyOptimizer(Cuby4AMBEREnergyOptimizer):
+    name = "c4ambermcopt"
+    display_name = "Cuby4-AMBER Multi Component Energy Optimizer"
+
+    def __init__(self, 
+                 num_components: int,
+                 interface_config = None,
+                 debug: bool = False, 
+                 save_output: bool = False,
+                 work_dir: str = ".",
+                 cuby4_exe: str = "auto") -> None:
+        
+        super().__init__(
+            interface_config=interface_config,
+            debug=debug,
+            save_output=save_output,
+            work_dir=work_dir,
+            cuby4_exe=cuby4_exe
+        )
+
+        self.num_components = num_components
+        self._inputs = self._generate_inputs()
+        self._outputs = self._generate_outputs()
+
+    @property  
+    def inputs(self) -> List[tuple]:  
+        return self._inputs  
+    
+    @property  
+    def outputs(self) -> List[tuple]:  
+        return self._outputs  
+    
+    @property
+    def batch_groups(self) -> List[Tuple[str]]:
+        return [tuple(f"molecule_{i+1}" for i in range(self.num_components))]
+    
+    def _generate_inputs(self) -> List[tuple]:  
+        return [(f"molecule_{i+1}", MoleculeData, ParmedMolRep, False) 
+                for i in range(self.num_components)] 
+    
+    def _generate_outputs(self) -> List[tuple]:  
+        return [(f"molecule_{i+1}", MoleculeData, ParmedMolRep, False) 
+                for i in range(self.num_components)] 
+    
+    def operate(self, input_dict):
+        st = parmed.Structure()
+        idxs = [0]
+        for i in range(self.num_components):
+            st += input_dict[f"molecule_{i+1}"].content
+            idxs.append(idxs[-1]+len(input_dict[f"molecule_{i+1}"].content.atoms))
+
+        out_dict = super().operate({"molecules": ParmedMolRep(st)})
+        st = out_dict["molecules"].content
+
+        output_dict = {}
+        for i in range(self.num_components):
+            newst = input_dict[f"molecule_{i+1}"].content.copy(parmed.Structure)
+            newst.coordinates = st.coordinates[idxs[i]:idxs[i+1]]
+            output_dict[f"molecule_{i+1}"] = ParmedMolRep(newst)
+        return output_dict

@@ -16,6 +16,7 @@ from molsberry.modules.rdkit import (
 from molsberry.modules.cuby4 import (
     Cuby4AMBEREnergyCalculator,
     Cuby4AMBEREnergyOptimizer,
+    Cuby4AMBERMultiComponentEnergyOptimizer,
     Cuby4AMBERInterfaceConfig
 )
 from molsberry.modules.parmed import (
@@ -38,6 +39,11 @@ def amber_energy_block():
 @pytest.fixture()
 def amber_optimize_block():
     block = Cuby4AMBEREnergyOptimizer()
+    return block
+
+@pytest.fixture()
+def amber_mcoptimize_block():
+    block = Cuby4AMBERMultiComponentEnergyOptimizer(2)
     return block
 
 @pytest.fixture()
@@ -169,6 +175,39 @@ def pipeline_prot_isol_param_optimize(amber_optimize_block,
         
     return OptimizePipeline(base_dir=BASE_DIR)
 
+@pytest.fixture()
+def pipeline_ligprot_pociso_param_comb_mcoptimize(
+    amber_mcoptimize_block, 
+    openff_parameterizer_block,
+    openmm_parameterizer_block) -> Pipeline:
+    
+    class OptimizePipeline(Pipeline):
+        name = "amber_optimize"
+        display_name = "Pocket Isolation/Amber Optimize Pipeline"
+        def build(self):
+            self.add_block(InputBlock(["proteins", "ligands"]), "input")
+
+            self.add_block(RDKitLigandPocketLocator(10), "pocloc")
+            self.add_connection("input", "ligands", "pocloc", "ligand")
+
+            self.add_block(ParmedProteinPocketIsolator(), "pociso")
+            self.add_connection("input", "proteins", "pociso", "protein")
+            self.add_connection("pocloc", "location", "pociso", "location")
+
+            self.add_block(openmm_parameterizer_block, "ommparm")
+            self.add_connection("pociso", "pocket", "ommparm", "proteins")
+
+            self.add_block(openff_parameterizer_block, "offparm")
+            self.add_connection("input", "ligands", "offparm", "molecules")
+
+            self.add_block(amber_mcoptimize_block, "ambopt")
+            self.add_connection("offparm", "molecules", "ambopt", "molecule_1")
+            self.add_connection("ommparm", "proteins", "ambopt", "molecule_2")
+
+            self.add_block(OutputBlock(["energy"]), "output")
+            self.add_connection("ambopt", "energy", "output", "energy")
+
+    return OptimizePipeline(base_dir=BASE_DIR)
 
 ##########################################################
 ##                         Tests                        ##
@@ -240,6 +279,18 @@ def test_cuby4_amber_pociso_optimize_from_plrex(
 
     lig, prot = sample_complex_rdpdbrep_from_plrex
     out = pipeline_prot_isol_param_optimize.execute(
+        ligands=MoleculeData(lig),
+        proteins=MoleculeData(prot)
+    )
+    print("Final Poc Energy:", out["energy"].get_representation_content()[0])
+
+def test_cuby4_amber_pociso_mcoptimize_from_plrex(
+        pipeline_ligprot_pociso_param_comb_mcoptimize: Pipeline, 
+        sample_complex_rdpdbrep_from_plrex: PDBPathRep
+    ):
+
+    lig, prot = sample_complex_rdpdbrep_from_plrex
+    out = pipeline_ligprot_pociso_param_comb_mcoptimize.execute(
         ligands=MoleculeData(lig),
         proteins=MoleculeData(prot)
     )
